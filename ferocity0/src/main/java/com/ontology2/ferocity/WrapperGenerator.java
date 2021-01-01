@@ -1,10 +1,12 @@
 package com.ontology2.ferocity;
 
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Executable;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
@@ -55,15 +57,37 @@ public class WrapperGenerator {
         target = String.class;
     }
 
-    public void generate(Path dir) throws IOException, ClassNotFoundException {
+    public void generate(Path dir, String s) throws IOException, ClassNotFoundException {
         Path p = dir.resolve("classes.txt");
-        List<String> classList = readAllLines(p.toAbsolutePath());
-        for(final String qualifiedName: classList) {
-            Class c = WrapperGenerator.class.getClassLoader().loadClass(qualifiedName);
-            if((c.getModifiers() & Modifier.PUBLIC)!=0) {
-                processClass(c);
-            }
+        Path target= dir.resolve(s);
+        generateOneSourceFile(target);
+//        List<String> classList = readAllLines(p.toAbsolutePath());
+//        for(final String qualifiedName: classList) {
+//            Class c = WrapperGenerator.class.getClassLoader().loadClass(qualifiedName);
+//            if((c.getModifiers() & Modifier.PUBLIC)!=0) {
+//                processClass(c);
+//            }
+//        }
+    }
+
+    private void generateOneSourceFile(Path target) throws IOException {
+        String className="com.ontology2.Amuro";
+        String[] parts = className.split("[.]");
+        Path current = target;
+        for(int i=0;i<parts.length-1;i++) {
+            current = current.resolve(parts[i]);
         }
+        Files.createDirectories(current);
+        current=current.resolve(parts[parts.length-1]+".java");
+        BufferedWriter writer = Files.newBufferedWriter(current);
+        writer.write("package com.ontology2;\n");
+        writer.write("\n\n");
+        writer.write("class Amuro {\n");
+        writer.write("   public String mech() {\n");
+        writer.write("      return \"Gundam\";\n");
+        writer.write("   }\n");
+        writer.write("}\n");
+        writer.close();
     }
 
     private List<Class> parameterList(Method m) {
