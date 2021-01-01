@@ -41,13 +41,13 @@ record Signature(String name, List<Class> arguments) {
 }
 
 public class WrapperGenerator {
-    private static final String SUPPRESSED = "\00";  // denote a method we won't generate
     private static String capitalize(String s) {
         StringBuilder sb=new StringBuilder();
         sb.append(Character.toUpperCase(s.charAt(0)));
         sb.append(s,1,s.length());
         return sb.toString();
     }
+
     private static final Expression<byte[]>[] EXPRESSION_OF_ARRAY_OF_BYTE = new Expression[0];
 
     Class target;
@@ -86,8 +86,6 @@ public class WrapperGenerator {
             // instead of printing out a list of members,  generate the actual code!
             // add support for fields
             //
-            // turn this package into a maven class that generates code and create
-            // another package that generates the stdlib...
             //
             for(NameArity name: namedConstructors.keySet()) {
                 Executable method = namedConstructors.get(name);
