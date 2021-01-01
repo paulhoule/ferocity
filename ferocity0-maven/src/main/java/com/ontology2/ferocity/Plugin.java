@@ -25,7 +25,6 @@ public class Plugin extends AbstractMojo {
     public void execute() throws MojoExecutionException {
         WrapperGenerator g = new WrapperGenerator();
         var model = project.getModel();
-//        var build = model.getBuild();
         var dir = project.getBasedir().toPath();
         try {
             g.generate(dir);
