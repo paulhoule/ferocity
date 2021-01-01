@@ -6,7 +6,9 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
+        <module name="ferocity-stdlib" />
         <module name="ferocity0" />
+        <module name="ferocity0-maven" />
       </profile>
     </annotationProcessing>
   </component>

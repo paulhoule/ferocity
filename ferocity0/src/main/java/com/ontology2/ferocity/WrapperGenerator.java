@@ -5,10 +5,10 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Executable;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.net.URL;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.function.BiConsumer;
-import java.util.zip.ZipFile;
 
 import static com.ontology2.ferocity.DefaultMap.newListMultiMap;
 import static com.ontology2.ferocity.ExpressionDSL.*;
@@ -16,6 +16,7 @@ import static com.ontology2.ferocity.Literal.of;
 import static com.ontology2.ferocity.ParameterDeclaration.parameter;
 import static com.ontology2.ferocity.SelfDSL.callCreateMethodCall;
 import static java.lang.reflect.Modifier.*;
+import static java.nio.file.Files.*;
 
 record NameArity(String name, int arity) {
     public NameArity with(String newName) {
@@ -54,25 +55,14 @@ public class WrapperGenerator {
         target = String.class;
     }
 
-    public void generate() throws IOException, ClassNotFoundException {
-//        System.out.print(ClassLoader.getSystemClassLoader().getDefinedPackages());
-        String srcZip = "c:\\Users\\paul_2fb85i5\\.jdks\\openjdk-15.0.1\\lib\\src.zip";
-        var entries = new ZipFile(srcZip).entries();
-        while(entries.hasMoreElements()) {
-            var e= entries.nextElement();
-            if(e.getName().startsWith("java.base/java/lang/")) {
-                String cn = e.getName().substring(10,e.getName().length()-5).replace("/",".");
-                if(!cn.endsWith(".package-info")) {
-                    Class c = getClass().getClassLoader().loadClass(cn);
-                    if((c.getModifiers() & Modifier.PUBLIC)!=0) {
-                        processClass(c);
-                    }
-                }
+    public void generate(Path dir) throws IOException, ClassNotFoundException {
+        Path p = dir.resolve("classes.txt");
+        List<String> classList = readAllLines(p.toAbsolutePath());
+        for(final String qualifiedName: classList) {
+            Class c = WrapperGenerator.class.getClassLoader().loadClass(qualifiedName);
+            if((c.getModifiers() & Modifier.PUBLIC)!=0) {
+                processClass(c);
             }
-        }
-        Enumeration<URL> roots = ClassLoader.getPlatformClassLoader().getResources("");
-        while(roots.hasMoreElements()) {
-            System.out.print(roots.nextElement());
         }
     }
 
@@ -92,6 +82,13 @@ public class WrapperGenerator {
             var namedMethods = deconflictMethods(c);
             var namedConstructors = deconflictConstructors(c);
             System.out.println(c);
+            //
+            // instead of printing out a list of members,  generate the actual code!
+            // add support for fields
+            //
+            // turn this package into a maven class that generates code and create
+            // another package that generates the stdlib...
+            //
             for(NameArity name: namedConstructors.keySet()) {
                 Executable method = namedConstructors.get(name);
                 System.out.println("    _ctor"+name.name()+" "+method);
@@ -299,7 +296,7 @@ public class WrapperGenerator {
         String name = "call" + capitalize(m.getName());
         System.out.println(m+" "+m.getModifiers());
         if ((m.getModifiers() & Modifier.STATIC) > 0) {
-            uc = updateClassForStaticMethod(uc, m, name);   
+            uc = updateClassForStaticMethod(uc, m, name);
         } else {
             uc = updateClassForInstanceMethod(uc, m, name);
         }
@@ -334,10 +331,5 @@ public class WrapperGenerator {
                         objectArray(EXPRESSION, arguments)
                     )));
         return uc;
-    }
-
-    public static void main(String argv[]) throws IOException, ClassNotFoundException {
-        WrapperGenerator w = new WrapperGenerator();
-        w.generate();
     }
 }
