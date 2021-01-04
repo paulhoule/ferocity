@@ -3,6 +3,11 @@ package com.ontology2.ferocity;
 import org.pcollections.PVector;
 import org.pcollections.TreePVector;
 
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
 /**
  * Enough of an implementation of a Java class that we can compile stub classes
  * for the Java standard library in it
@@ -41,5 +46,18 @@ public class UrClass {
         }
         sb.append("}\n");
         return sb.toString();
+    }
+
+    public void writeToSourceFile(Path sourceBase) throws IOException {
+        String[] parts=qualifiedName.split("[.]");
+        Path current = sourceBase;
+        for(int i=0;i<parts.length-1;i++) {
+            current = current.resolve(parts[i]);
+        }
+        Files.createDirectories(current);
+        current=current.resolve(parts[parts.length-1]+".java");
+        BufferedWriter writer = Files.newBufferedWriter(current);
+        writer.write(asSource());
+        writer.close();
     }
 }

@@ -60,35 +60,23 @@ public class WrapperGenerator {
     public void generate(Path dir, String s) throws IOException, ClassNotFoundException {
         Path p = dir.resolve("classes.txt");
         Path target= dir.resolve(s);
-        generateOneSourceFile(target);
-//        List<String> classList = readAllLines(p.toAbsolutePath());
-//        for(final String qualifiedName: classList) {
-//            Class c = WrapperGenerator.class.getClassLoader().loadClass(qualifiedName);
-//            if((c.getModifiers() & Modifier.PUBLIC)!=0) {
-//                processClass(c);
-//            }
-//        }
+        List<String> classList = readAllLines(p.toAbsolutePath());
+        for(final String qualifiedName: classList) {
+            if(qualifiedName.length() == 0) {
+                continue;
+            }
+
+            try {
+                Class c = WrapperGenerator.class.getClassLoader().loadClass(qualifiedName);
+                if ((c.getModifiers() & Modifier.PUBLIC) != 0) {
+                    processClass(c, target);
+                }
+            } catch(ClassNotFoundException notFound) {
+                System.out.println("Failed to look up class "+qualifiedName);
+            }
+        }
     }
 
-    private void generateOneSourceFile(Path target) throws IOException {
-        String className="com.ontology2.Amuro";
-        String[] parts = className.split("[.]");
-        Path current = target;
-        for(int i=0;i<parts.length-1;i++) {
-            current = current.resolve(parts[i]);
-        }
-        Files.createDirectories(current);
-        current=current.resolve(parts[parts.length-1]+".java");
-        BufferedWriter writer = Files.newBufferedWriter(current);
-        writer.write("package com.ontology2;\n");
-        writer.write("\n\n");
-        writer.write("class Amuro {\n");
-        writer.write("   public String mech() {\n");
-        writer.write("      return \"Gundam\";\n");
-        writer.write("   }\n");
-        writer.write("}\n");
-        writer.close();
-    }
 
     private List<Class> parameterList(Method m) {
         var result = new ArrayList<Class>();
@@ -101,24 +89,18 @@ public class WrapperGenerator {
         return result;
     }
 
-    private void processClass(Class c) {
+    private void processClass(Class c, Path target) throws IOException {
         if(!isInterface(c.getModifiers())) {
             var namedMethods = deconflictMethods(c);
             var namedConstructors = deconflictConstructors(c);
             System.out.println(c);
             //
-            // instead of printing out a list of members,  generate the actual code!
             // add support for fields
             //
             //
-            for(NameArity name: namedConstructors.keySet()) {
-                Executable method = namedConstructors.get(name);
-                System.out.println("    _ctor"+name.name()+" "+method);
-            }
-            for(NameArity name: namedMethods.keySet()) {
-                Executable method = namedMethods.get(name);
-                System.out.println("    "+name.name()+" "+method);
-            }
+
+            UrClass uc = new UrClass("\uD835\uDD23."+c.getName());
+            uc.writeToSourceFile(target);
         }
     }
 
