@@ -36,7 +36,7 @@ public class FierceParameterizedType implements ParameterizedType {
               if(i>0) {
                   sb.append(",");
               }
-              sb.append(((Class) actualTypeArguments[i]).getCanonicalName());
+              sb.append(actualTypeArguments[i].getTypeName());
           }
           sb.append(">");
       }

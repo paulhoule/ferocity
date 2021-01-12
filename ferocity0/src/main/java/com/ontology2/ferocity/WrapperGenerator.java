@@ -2,10 +2,7 @@ package com.ontology2.ferocity;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Executable;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
+import java.lang.reflect.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -100,6 +97,12 @@ public class WrapperGenerator {
             //
 
             UrClass uc = new UrClass("\uD835\uDD23."+c.getName());
+            for(var method: namedMethods.entrySet()) {
+                System.out.println(method.getValue().getReturnType());
+                Object[] returnType = (Object[]) Array.newInstance(method.getValue().getReturnType(),0);
+                UrMethodHeader m = method(method.getKey().name(), returnType);
+                uc = updateClassForMethod(uc, method.getValue());
+            }
             uc.writeToSourceFile(target);
         }
     }

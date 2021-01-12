@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static com.ontology2.ferocity.ExpressionDSL.local;
+import static com.ontology2.ferocity.Types.box;
 
 public class ParameterDeclaration<P> {
     final P[] parameterType;
@@ -36,28 +37,12 @@ public class ParameterDeclaration<P> {
         var raw = (Class) (parameterizedType instanceof ParameterizedType
                 ? ((ParameterizedType) parameterizedType).getRawType()
                 : parameterizedType);
-        if(raw.isPrimitive()) {
-            raw = box(raw);
-        }
+        raw = box(raw);
         Object any = Array.newInstance((Class) raw,0);
         return new ParameterDeclaration((X[]) any, parameterizedType, name, false);
     }
 
-    static Map<Class, Class> _box = new HashMap<>() {{
-        put(boolean.class, Boolean.class);
-        put(char.class, Character.class);
-        put(byte.class, Byte.class);
-        put(short.class, Short.class);
-        put(int.class,Integer.class);
-        put(long.class, Long.class);
-        put(float.class, Float.class);
-        put(double.class, Double.class);
-        put(void.class, Void.class);
-    }};
 
-    private static Class box(Class raw) {
-        return _box.get(raw);
-    }
 
     static <PP> ParameterDeclaration<PP> parameter(PP[] type, Type parameterizedType, String name) {
         return new ParameterDeclaration<PP>(type,parameterizedType, name,false);

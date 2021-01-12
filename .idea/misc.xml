@@ -8,18 +8,7 @@
       </list>
     </option>
   </component>
-  <component name="ProjectRootManager" version="2" languageLevel="JDK_15_PREVIEW" default="false" project-jdk-name="openjdk-15" project-jdk-type="JavaSDK">
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_15_PREVIEW" project-jdk-name="openjdk-15" project-jdk-type="JavaSDK">
     <output url="file://$PROJECT_DIR$/out" />
-  </component>
-  <component name="SbtLocalSettings">
-    <option name="projectSyncType">
-      <map>
-        <entry key="$PROJECT_DIR$/../TimeSeriesTrial" value="PREVIEW" />
-        <entry key="$PROJECT_DIR$/../time-series-trial" value="PREVIEW" />
-      </map>
-    </option>
-  </component>
-  <component name="ScalaSbtSettings">
-    <option name="customVMPath" />
   </component>
 </project>
