@@ -7,7 +7,7 @@ public class FierceParameterizedType implements ParameterizedType {
     final Type[] actualTypeArguments;
     final Type rawType;
 
-    FierceParameterizedType(Type rawType, Type[] actualTypeArguments) {
+    FierceParameterizedType(Class rawType, Type[] actualTypeArguments) {
         this.actualTypeArguments = actualTypeArguments;
         this.rawType = rawType;
     }

@@ -37,7 +37,7 @@ public class ParameterDeclaration<P> {
         var raw = (Class) (parameterizedType instanceof ParameterizedType
                 ? ((ParameterizedType) parameterizedType).getRawType()
                 : parameterizedType);
-        raw = box(raw);
+        raw = (Class) box(raw);
         Object any = Array.newInstance((Class) raw,0);
         return new ParameterDeclaration((X[]) any, parameterizedType, name, false);
     }

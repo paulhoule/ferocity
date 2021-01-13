@@ -7,7 +7,7 @@ import java.lang.reflect.Array;
 import java.lang.reflect.Method;
 import java.util.List;
 
-class MethodCall<R> extends Expression<R> {
+public class MethodCall<R> extends Expression<R> {
     private final Class thatClass;
     private final Expression<?> that;
     private final String name;

@@ -80,7 +80,7 @@ public class ExpressionDSL {
      * @param parameters
      * @return
      */
-    public static ParameterizedType reify(Type raw, Type... parameters) {
+    public static ParameterizedType reify(Class raw, Type... parameters) {
         Type[] innerParameters = new Type[parameters.length];
         for(int i=0;i<parameters.length;i++) {
             Type typeParameter = parameters[i];

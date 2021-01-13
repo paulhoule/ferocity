@@ -14,6 +14,8 @@ import static com.ontology2.ferocity.ExpressionDSL.*;
 import static com.ontology2.ferocity.Literal.of;
 import static com.ontology2.ferocity.ParameterDeclaration.parameter;
 import static com.ontology2.ferocity.SelfDSL.callCreateMethodCall;
+import static com.ontology2.ferocity.Types.box;
+import static com.ontology2.ferocity.Types.emptyArrayOf;
 import static java.lang.reflect.Modifier.*;
 import static java.nio.file.Files.*;
 
@@ -98,9 +100,7 @@ public class WrapperGenerator {
 
             UrClass uc = new UrClass("\uD835\uDD23."+c.getName());
             for(var method: namedMethods.entrySet()) {
-                System.out.println(method.getValue().getReturnType());
-                Object[] returnType = (Object[]) Array.newInstance(method.getValue().getReturnType(),0);
-                UrMethodHeader m = method(method.getKey().name(), returnType);
+                System.out.println("   "+method.getValue());
                 uc = updateClassForMethod(uc, method.getValue());
             }
             uc.writeToSourceFile(target);
@@ -318,12 +318,12 @@ public class WrapperGenerator {
     private UrClass updateClassForInstanceMethod(UrClass uc, Method m, String name) {
         var that = parameter(EXPRESSION,reify(Expression.class, target), "that");
         Expression<Expression<?>>[] arguments = new Expression[m.getParameterCount()];
-        var header = method(name, EXPRESSION, reify(Expression.class, m.getGenericReturnType()));
+        var header = method(name, EXPRESSION, expressionOf(m.getGenericReturnType()));
         header = header.receives(that);
         for(int i=0;i<m.getParameterCount();i++) {
             var p = m.getParameters()[i];
             System.out.println(reify(Expression.class, p.getParameterizedType()));
-            var pdecl = parameter(reify(Expression.class,p.getParameterizedType()),p.getName());
+            var pdecl = parameter(expressionOf(p.getParameterizedType()),p.getName());
             header = header.receives(pdecl);
             arguments[i] = (Expression<Expression<?>>) pdecl.reference();
         }
@@ -338,5 +338,15 @@ public class WrapperGenerator {
                         objectArray(EXPRESSION, arguments)
                     )));
         return uc;
+    }
+
+    private Type expressionOf(Type t) {
+        if(t instanceof Class) {
+            Class c = (Class) t;
+            if (c.isPrimitive()) {
+                return reify(Expression.class,box(c));
+            }
+        }
+        return reify(Expression.class, t);
     }
 }

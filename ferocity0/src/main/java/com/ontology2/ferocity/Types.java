@@ -1,6 +1,7 @@
 package com.ontology2.ferocity;
 
 import java.lang.reflect.Array;
+import java.lang.reflect.ParameterizedType;
 import java.util.HashMap;
 import java.util.Map;
 
