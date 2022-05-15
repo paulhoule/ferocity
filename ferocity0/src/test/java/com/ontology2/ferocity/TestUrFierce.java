@@ -69,7 +69,7 @@ public class TestUrFierce {
                 reify(Expression.class, String.class),
                 "that"
         );
-        var xx = callCreateMethodCall(
+        Expression<Expression<byte[]>> xx = callCreateMethodCall(
                 objectArray(STRING),
                 that.reference(),
                 of("getBytes"),
