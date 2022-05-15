@@ -1,11 +1,9 @@
 package com.ontology2.ferocity;
 
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
-import org.junit.Test;
-
-import static org.junit.Assert.assertNull;
-
-public class VoidBoxing {
+public class TestVoidBoxing {
     Void nothing() {
         return null;
     }

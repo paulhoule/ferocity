@@ -27,20 +27,22 @@ public class ExpressionDSL {
     }
 
     public static <T> LocalName local(String name, T[] type) {
-        return new LocalName(name, type);
+        return new LocalName<>(name, type);
     }
 
     // this one doesn't exist in Java but it does in LiSP and we need it to do some kinds
     // of metaprogramming.
 
     public static <T> Expression<Expression<T>> quote(Expression<T> innerExpression) {
-        return new Quote<T>(innerExpression);
+        return new Quote<>(innerExpression);
     }
 
+    @SafeVarargs
     public static <T,S extends T> Expression<T[]> objectArray(T[] ofType, Expression<S>... parts) {
         return new ArrayExpression(parts, ofType);
     }
 
+    @SuppressWarnings("UnusedReturnValue")
     public static <T,S extends T> Expression<T[]> objectArrayExact(T[] ofType, Expression<T>[] parts) {
         return new ArrayExpression(parts, ofType);
     }
@@ -50,11 +52,11 @@ public class ExpressionDSL {
     }
 
     public static <RR> UrMethodHeader<RR> method(String name,RR[] returnType) {
-        return new UrMethodHeader(returnType, name);
+        return new UrMethodHeader<>(returnType, name);
     }
 
     public static <RR> UrMethodHeader<RR> method(String name, RR[] returnType, Type parameterizedReturnType) {
-        return new UrMethodHeader(returnType, name, parameterizedReturnType);
+        return new UrMethodHeader<>(returnType, name, parameterizedReturnType);
     }
 
     public static <X> Expression<X> nil() {
@@ -76,11 +78,11 @@ public class ExpressionDSL {
      * a Expression &lt; Void &gt; when the reflection API tells us that the method
      * returns void.class.
      *
-     * @param raw
-     * @param parameters
-     * @return
+     * @param raw the class to be parameterized
+     * @param parameters the type parameters
+     * @return a fierce parameterized type
      */
-    public static ParameterizedType reify(Class raw, Type... parameters) {
+    public static ParameterizedType reify(Class<?> raw, Type... parameters) {
         Type[] innerParameters = new Type[parameters.length];
         for(int i=0;i<parameters.length;i++) {
             Type typeParameter = parameters[i];
@@ -90,6 +92,5 @@ public class ExpressionDSL {
             innerParameters[i] = typeParameter;
         }
         return new FierceParameterizedType(raw, innerParameters);
-    };
-
+    }
 }

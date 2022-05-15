@@ -1,15 +1,14 @@
 package com.ontology2.ferocity;
 
-import com.ontology2.ferocity.Expression;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static com.ontology2.ferocity.Literal.of;
 import static com.ontology2.ferocity.StringDSL.*;
 import static com.ontology2.ferocity.ExpressionDSL.*;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-public class FierceStrings {
+public class TestFierceStrings {
     @Test
     public void computeTheLengthOfAString() throws Throwable {
         Expression<Integer> four = callLength(of("Four"));

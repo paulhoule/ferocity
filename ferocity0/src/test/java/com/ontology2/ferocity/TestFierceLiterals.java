@@ -1,41 +1,41 @@
 package com.ontology2.ferocity;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static com.ontology2.ferocity.ExpressionDSL.add;
 import static com.ontology2.ferocity.Literal.*;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
-public class FierceLiterals {
+public class TestFierceLiterals {
     @Test
     public void literalizeAString() throws Throwable {
-        Literal l= of("A string");
+        var l= of("A string");
         assertEquals("\"A string\"", l.toString());
         assertEquals("A string", l.evaluate());
     }
 
     @Test
     public void literalizeNewline() {
-        Literal l= of("\n");
+        var l= of("\n");
         assertEquals("\"\\n\"", l.toString());
     }
 
     @Test
     public void literalizeCR() {
-        Literal l= of("\r");
+        var l= of("\r");
         assertEquals("\"\\r\"", l.toString());
     }
 
     @Test
     public void thatsALotOfBackslashes() {
-        Literal l= of("\\");
+        var l= of("\\");
         assertEquals("\"\\\\\"", l.toString());
     }
 
     @Test
     public void doubleDoubleQuote() {
-        Literal l= of("\"");
+        var l= of("\"");
         assertEquals("\"\\\"\"", l.toString());
     }
 

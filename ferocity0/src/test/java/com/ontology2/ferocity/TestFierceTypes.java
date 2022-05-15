@@ -1,15 +1,15 @@
 package com.ontology2.ferocity;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Set;
 
 import static com.ontology2.ferocity.ExpressionDSL.reify;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class FierceTypes {
+public class TestFierceTypes {
     @Test
     public void zeroParameterType() {
         Type t = reify(String.class);
