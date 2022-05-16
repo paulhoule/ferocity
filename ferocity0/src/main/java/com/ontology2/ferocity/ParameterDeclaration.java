@@ -9,6 +9,7 @@ import java.util.Map;
 
 import static com.ontology2.ferocity.ExpressionDSL.local;
 import static com.ontology2.ferocity.Types.box;
+import static com.ontology2.ferocity.UrMethodHeader.sourceName;
 
 public class ParameterDeclaration<P> {
     final P[] parameterType;
@@ -27,33 +28,33 @@ public class ParameterDeclaration<P> {
     }
 
     static <PP> ParameterDeclaration<PP> parameter(PP[] type, String name) {
-        return new ParameterDeclaration<PP>(type, name, false);
+        return new ParameterDeclaration<>(type, name, false);
     }
 
     static <X> ParameterDeclaration<?> parameter(Type parameterizedType, String name) {
         //
         // create the object array corresponding to the type
         //
-        var raw = (Class) (parameterizedType instanceof ParameterizedType
+        var raw = (Class<?>) (parameterizedType instanceof ParameterizedType
                 ? ((ParameterizedType) parameterizedType).getRawType()
                 : parameterizedType);
-        raw = (Class) box(raw);
-        Object any = Array.newInstance((Class) raw,0);
-        return new ParameterDeclaration((X[]) any, parameterizedType, name, false);
+        raw = box(raw);
+        var any = (X[]) Array.newInstance(raw,0);
+        return new ParameterDeclaration<>(any, parameterizedType, name, false);
     }
 
 
 
     static <PP> ParameterDeclaration<PP> parameter(PP[] type, Type parameterizedType, String name) {
-        return new ParameterDeclaration<PP>(type,parameterizedType, name,false);
+        return new ParameterDeclaration<>(type,parameterizedType, name,false);
     }
 
     static <PP> ParameterDeclaration<PP> variableParameter(PP[] type, String name) {
-        return new ParameterDeclaration<PP>(type, name, true);
+        return new ParameterDeclaration<>(type, name, true);
     }
 
     static <PP> ParameterDeclaration<PP> variableParameter(PP[] type, Type parameterizedType, String name) {
-        return new ParameterDeclaration<PP>(type, parameterizedType, name, true);
+        return new ParameterDeclaration<>(type, parameterizedType, name, true);
     }
 
     public String asSource() {
@@ -63,7 +64,7 @@ public class ParameterDeclaration<P> {
     }
 
     public void buildSource(StringBuilder sb) {
-        sb.append(parameterizedType.getTypeName());
+        sb.append(sourceName(parameterizedType));
         sb.append(" ");
         sb.append(parameterName);
     }
