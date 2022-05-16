@@ -8,6 +8,7 @@ import java.util.function.BiConsumer;
 
 import static com.ontology2.ferocity.DefaultMap.newListMultiMap;
 import static com.ontology2.ferocity.ExpressionDSL.*;
+import static com.ontology2.ferocity.FierceWildcard.anyType;
 import static com.ontology2.ferocity.Literal.of;
 import static com.ontology2.ferocity.ParameterDeclaration.parameter;
 import static com.ontology2.ferocity.SelfDSL.callCreateMethodCall;
@@ -229,8 +230,7 @@ public class WrapperGenerator {
         header = header.receives(that);
         for(int i = 0; i< m.getParameterCount(); i++) {
             var p = m.getParameters()[i];
-            System.out.println(reify(Expression.class, p.getParameterizedType()));
-            var pdecl = parameter(expressionOf(p.getParameterizedType()),p.getName());
+            var pdecl = parameter(parameterExpressionType(p),p.getName());
             header = header.receives(pdecl);
             arguments[i] = (Expression<Expression<?>>) pdecl.reference();
         }
@@ -243,6 +243,19 @@ public class WrapperGenerator {
                                 of(m.getParameterTypes()),
                                 objectArray(EXPRESSION, arguments)
                         ));
+    }
+
+    private static Type getExpandedParameterType(Type t) {
+        if (t instanceof Class c) {
+            if(c.isPrimitive() || isFinal(c.getModifiers())) {
+                return t;
+            }
+        }
+        return anyType().boundedAboveBy(t);
+    }
+
+    private static Type parameterExpressionType(Parameter p) {
+        return expressionOf(getExpandedParameterType(p.getParameterizedType()));
     }
 
     static Type expressionOf(Type t) {

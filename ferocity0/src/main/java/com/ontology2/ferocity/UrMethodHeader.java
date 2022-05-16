@@ -1,11 +1,11 @@
 package com.ontology2.ferocity;
 
 import org.pcollections.PVector;
-import org.pcollections.TreePVector;
 
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 
+import static com.ontology2.ferocity.Utility.appendItems;
 import static org.pcollections.TreePVector.*;
 
 class UrMethodHeader<R> {
@@ -59,12 +59,12 @@ class UrMethodHeader<R> {
                 } else {
                     sb.append(',');
                 }
-                sb.append(sourceName(tVar));
+                sb.append(Utility.sourceName(tVar));
             }
             sb.append('>');
             sb.append(' ');
         }
-        sb.append(sourceName(parameterizedReturnType));
+        sb.append(Utility.sourceName(parameterizedReturnType));
         sb.append(" ");
         sb.append(name);
         sb.append("(");
@@ -77,24 +77,4 @@ class UrMethodHeader<R> {
         return sb.toString();
     }
 
-    static String sourceName(Type that) {
-        return that.getTypeName().replace("$",".");
-    }
-
-    static String sourceName(TypeVariable that) {
-        if(that.getBounds().length==0)
-            return that.getName();
-
-        StringBuilder b = new StringBuilder(that.getName());
-        b.append(" extends ");
-        boolean isFirst=true;
-        for(var bound: that.getBounds()) {
-            if(isFirst)
-                isFirst=false;
-            else
-                b.append(" & ");
-            b.append(sourceName(bound));
-        }
-        return b.toString();
-    }
 }

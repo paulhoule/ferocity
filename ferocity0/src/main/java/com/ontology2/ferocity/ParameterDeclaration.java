@@ -3,13 +3,10 @@ package com.ontology2.ferocity;
 import java.lang.reflect.Array;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
 
 import static com.ontology2.ferocity.ExpressionDSL.local;
 import static com.ontology2.ferocity.Types.box;
-import static com.ontology2.ferocity.UrMethodHeader.sourceName;
+import static com.ontology2.ferocity.Utility.sourceName;
 
 public class ParameterDeclaration<P> {
     final P[] parameterType;
