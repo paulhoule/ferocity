@@ -5,6 +5,7 @@ import java.lang.reflect.*;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.function.BiConsumer;
+import java.util.function.Predicate;
 
 import static com.ontology2.ferocity.DefaultMap.newListMultiMap;
 import static com.ontology2.ferocity.ExpressionDSL.*;
@@ -13,8 +14,9 @@ import static com.ontology2.ferocity.Literal.of;
 import static com.ontology2.ferocity.ParameterDeclaration.parameter;
 import static com.ontology2.ferocity.SelfDSL.callCreateMethodCall;
 import static com.ontology2.ferocity.Types.box;
-import static java.lang.reflect.Modifier.*;
+import static com.ontology2.ferocity.Utility.*;
 import static java.nio.file.Files.*;
+import static java.util.function.Predicate.*;
 
 record NameArity(String name, int arity) {
     public NameArity with(String newName) {
@@ -28,7 +30,7 @@ record NameArity(String name, int arity) {
 record Signature(String name, List<Class<?>> arguments) {
     public static Signature of(Class<?> c,Method m) {
         List<Class<?>> arguments = new ArrayList<>();
-        if(!isStatic(m.getModifiers())) {
+        if(!isStatic(m)) {
             arguments.add(c);
         }
         for(int i=0;i<m.getParameterCount();i++) {
@@ -67,10 +69,9 @@ public class WrapperGenerator {
         }
     }
     private void processClass(Class<?> c, Path target) throws IOException {
-        if(!isInterface(c.getModifiers())) {
+        if(!isInterface(c)) {
             var namedMethods = deconflictMethods(c);
             var namedConstructors = deconflictConstructors(c);
-            System.out.println(c);
             //
             // add support for fields
             //
@@ -113,7 +114,7 @@ public class WrapperGenerator {
     Map<NameArity, Executable> deconflictConstructors(Class<?> c) {
         Map<NameArity, List<Executable>> ctorGroups= newListMultiMap();
         for(Constructor<?> ctor: c.getDeclaredConstructors()) {
-            if(!isPublic(ctor.getModifiers())) {
+            if(!isPublic(ctor)) {
                 continue;
             }
             ctorGroups.get(NameArity.of(ctor)).add(ctor);
@@ -195,7 +196,8 @@ public class WrapperGenerator {
     }
 
     private UrClass updateClassForStaticMethod(UrClass uc, Method m, String name) {
-        System.out.println("Skipping static method "+m);
+//        UrMethod<?> method = wrapperForStaticMethod(m, name);
+//        uc = uc.def(method);
         return uc;
     }
 
@@ -205,35 +207,38 @@ public class WrapperGenerator {
         return uc;
     }
 
-    static UrMethod<?> wrapperForInstanceMethod(Method m, String name) {
-        Class<?> target = m.getDeclaringClass();
-        var that = parameter(EXPRESSION,reify(Expression.class, target), "that");
-        Expression<Expression<?>>[] arguments = new Expression[m.getParameterCount()];
+    static UrMethod<?> wrapperForStaticMethod(Method m, String name) {
+        var target = m.getDeclaringClass();
         var header = method(name, EXPRESSION, expressionOf(m.getGenericReturnType()));
-        List<TypeVariable<?>> typeVariables = new ArrayList<>();
-        Map<String,TypeVariable<?>> tv = new HashMap<>();
-        if(!isStatic(m.getModifiers())) {
-            for(TypeVariable<?> tVar: target.getTypeParameters()) {
-                typeVariables.add(tVar);
-                tv.put(tVar.getName(), tVar);
-            }
-        }
-        for(TypeVariable<?> tVar: m.getTypeParameters()) {
-            typeVariables.add(tVar);
-            tv.put(tVar.getName(), tVar);
-        }
 
-        for(TypeVariable<?> tVar: typeVariables) {
-            if (tv.containsValue(tVar))
+        for(TypeVariable<?> tVar: getTypeVariables(m, target)) {
+            header = header.typeVariable(tVar);
+        }
+        return null;
+    }
+
+    static UrMethod<?> wrapperForInstanceMethod(Method m, String name) {
+        var target = m.getDeclaringClass();
+        var header = method(name, EXPRESSION, expressionOf(m.getGenericReturnType()));
+
+        for(TypeVariable<?> tVar: getTypeVariables(m, target)) {
                 header = header.typeVariable(tVar);
         }
-        header = header.receives(that);
+
+        ParameterDeclaration<Expression> that=null;
+        if(!isStatic(m)) {
+            that = parameter(EXPRESSION, reify(Expression.class, target), "that");
+            header = header.receives(that);
+        }
+
+        Expression<Expression<?>>[] arguments = new Expression[m.getParameterCount()];
         for(int i = 0; i< m.getParameterCount(); i++) {
             var p = m.getParameters()[i];
             var pdecl = parameter(parameterExpressionType(p),p.getName());
             header = header.receives(pdecl);
             arguments[i] = (Expression<Expression<?>>) pdecl.reference();
         }
+
         return header
                 .withBody(
                         callCreateMethodCall(
@@ -245,9 +250,27 @@ public class WrapperGenerator {
                         ));
     }
 
+    private static List<TypeVariable<?>> getTypeVariables(Method m, Class<?> target) {
+        List<TypeVariable<?>> typeVariables = new ArrayList<>();
+        Map<String,TypeVariable<?>> tv = new HashMap<>();
+        if(!isStatic(m)) {
+            for(TypeVariable<?> tVar: target.getTypeParameters()) {
+                typeVariables.add(tVar);
+                tv.put(tVar.getName(), tVar);
+            }
+        }
+        for(TypeVariable<?> tVar: m.getTypeParameters()) {
+            typeVariables.add(tVar);
+            tv.put(tVar.getName(), tVar);
+        }
+
+        typeVariables.removeIf(not(tv::containsValue));
+        return typeVariables;
+    }
+
     private static Type getExpandedParameterType(Type t) {
         if (t instanceof Class c) {
-            if(c.isPrimitive() || isFinal(c.getModifiers())) {
+            if(c.isPrimitive() || isFinal(c)) {
                 return t;
             }
         }

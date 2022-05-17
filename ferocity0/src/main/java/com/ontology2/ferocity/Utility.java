@@ -1,7 +1,6 @@
 package com.ontology2.ferocity;
 
-import java.lang.reflect.Type;
-import java.lang.reflect.TypeVariable;
+import java.lang.reflect.*;
 import java.util.function.Function;
 
 public class Utility {
@@ -42,4 +41,24 @@ public class Utility {
         appendItems(b, that.getBounds(), Utility::sourceName, " & ");
         return b.toString();
     }
+
+    static boolean isFinal(Class c) {
+        return Modifier.isFinal(c.getModifiers());
+    }
+    static boolean isInterface(Class c) {
+        return Modifier.isInterface(c.getModifiers());
+    }
+
+    static boolean isPublic(Constructor c) {
+        return Modifier.isPublic(c.getModifiers());
+    }
+
+    static boolean isPublic(Method m) {
+        return Modifier.isPublic(m.getModifiers());
+    }
+
+    static boolean isStatic(Method m) {
+        return Modifier.isStatic(m.getModifiers());
+    };
+
 }
