@@ -37,7 +37,7 @@ public class TestWrapperGenerator {
         var info = unique.get(new NameArity("info",1));
         assertEquals(ProcessHandle.Info.class, info.getReturnType());
         assertEquals("java.lang.ProcessHandle$Info", info.getGenericReturnType().getTypeName());
-        var u = wrapperForInstanceMethod(info, "info");
+        var u = wrapperForMethod(info, "info");
         var returns = expressionOf(info.getReturnType());
 
         assertEquals("com.ontology2.ferocity.Expression<java.lang.ProcessHandle$Info>", returns.getTypeName());
@@ -52,7 +52,7 @@ public class TestWrapperGenerator {
         assertEquals(10, unique.size());
         var getDeclaringClass = unique.get(new NameArity("getDeclaringClass",1));
         assertEquals(Class.class, getDeclaringClass.getReturnType());
-        var u = wrapperForInstanceMethod(getDeclaringClass, "xxx");
+        var u = wrapperForMethod(getDeclaringClass, "xxx");
 
         assertEquals("public static <E extends java.lang.Enum<E>> com.ontology2.ferocity.Expression<java.lang.Class<E>> " +
                 "xxx(com.ontology2.ferocity.Expression<java.lang.Enum> that)",u.header.asSource());

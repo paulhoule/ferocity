@@ -5,7 +5,6 @@ import java.lang.reflect.*;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.function.BiConsumer;
-import java.util.function.Predicate;
 
 import static com.ontology2.ferocity.DefaultMap.newListMultiMap;
 import static com.ontology2.ferocity.ExpressionDSL.*;
@@ -90,7 +89,7 @@ public class WrapperGenerator {
     static Map<NameArity,Method> deconflictMethods(Class<?> c) {
         Map<NameArity, List<Method>> methodGroups = newListMultiMap();
         for(final Method m: c.getDeclaredMethods()) {
-            if((m.getModifiers() & Modifier.PUBLIC)==0) {
+            if(!isPublic(m)) {
                 continue;
             }
             int arity = m.getParameterCount();
@@ -189,28 +188,11 @@ public class WrapperGenerator {
     private UrClass updateClassForMethod(UrClass uc, NameArity key, Method m) {
         String name = "call" + capitalize(key.name());
         System.out.println(m+" "+m.getModifiers());
-        uc = updateClassForInstanceMethod(uc, m, name);
-        return uc;
-    }
-
-    private UrClass updateClassForInstanceMethod(UrClass uc, Method m, String name) {
-        UrMethod<?> method = wrapperForInstanceMethod(m, name);
-        uc = uc.def(method);
-        return uc;
-    }
-
-    static UrMethod<?> wrapperForStaticMethod(Method m, String name) {
-        var target = m.getDeclaringClass();
-        var header = method(name, EXPRESSION, expressionOf(m.getGenericReturnType()));
-
-        for(TypeVariable<?> tVar: getTypeVariables(m, target)) {
-            header = header.typeVariable(tVar);
-        }
-        return null;
+        return uc.def(wrapperForMethod(m, name));
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    static UrMethod<?> wrapperForInstanceMethod(Method m, String name) {
+    static UrMethod<?> wrapperForMethod(Method m, String name) {
         var target = m.getDeclaringClass();
         var header = method(name, EXPRESSION, expressionOf(m.getGenericReturnType()));
 
