@@ -13,6 +13,7 @@ import static com.ontology2.ferocity.FierceWildcard.anyType;
 import static com.ontology2.ferocity.Literal.of;
 import static com.ontology2.ferocity.ParameterDeclaration.parameter;
 import static com.ontology2.ferocity.SelfDSL.callCreateMethodCall;
+import static com.ontology2.ferocity.SelfDSL.callCreateStaticMethodCall;
 import static com.ontology2.ferocity.Types.box;
 import static com.ontology2.ferocity.Utility.*;
 import static java.nio.file.Files.*;
@@ -45,6 +46,7 @@ public class WrapperGenerator {
         return Character.toUpperCase(s.charAt(0)) + s.substring(1);
     }
 
+    @SuppressWarnings("unchecked")
     private static final Expression<byte[]>[] EXPRESSION_OF_ARRAY_OF_BYTE = new Expression[]{};
 
     public WrapperGenerator() {
@@ -187,17 +189,7 @@ public class WrapperGenerator {
     private UrClass updateClassForMethod(UrClass uc, NameArity key, Method m) {
         String name = "call" + capitalize(key.name());
         System.out.println(m+" "+m.getModifiers());
-        if ((m.getModifiers() & Modifier.STATIC) > 0) {
-            uc = updateClassForStaticMethod(uc, m, name);
-        } else {
-            uc = updateClassForInstanceMethod(uc, m, name);
-        }
-        return uc;
-    }
-
-    private UrClass updateClassForStaticMethod(UrClass uc, Method m, String name) {
-//        UrMethod<?> method = wrapperForStaticMethod(m, name);
-//        uc = uc.def(method);
+        uc = updateClassForInstanceMethod(uc, m, name);
         return uc;
     }
 
@@ -217,6 +209,7 @@ public class WrapperGenerator {
         return null;
     }
 
+    @SuppressWarnings({"unchecked", "rawtypes"})
     static UrMethod<?> wrapperForInstanceMethod(Method m, String name) {
         var target = m.getDeclaringClass();
         var header = method(name, EXPRESSION, expressionOf(m.getGenericReturnType()));
@@ -225,7 +218,7 @@ public class WrapperGenerator {
                 header = header.typeVariable(tVar);
         }
 
-        ParameterDeclaration<Expression> that=null;
+        ParameterDeclaration<Expression<?>> that=null;
         if(!isStatic(m)) {
             that = parameter(EXPRESSION, reify(Expression.class, target), "that");
             header = header.receives(that);
@@ -239,15 +232,20 @@ public class WrapperGenerator {
             arguments[i] = (Expression<Expression<?>>) pdecl.reference();
         }
 
-        return header
-                .withBody(
-                        callCreateMethodCall(
-                                objectArray((Object[]) Array.newInstance(target,0)),
-                                (Expression) that.reference(),
-                                of(m.getName()),
-                                of(m.getParameterTypes()),
-                                objectArray(EXPRESSION, arguments)
-                        ));
+        //noinspection unchecked,RedundantCast,SwitchStatementWithTooFewBranches
+        return header.withBody((Expression) switch(that) {
+            case null -> callCreateStaticMethodCall(
+                    objectArray((Object[]) Array.newInstance(target, 0)),
+                    of(m.getName()),
+                    of(m.getParameterTypes()),
+                    objectArray(EXPRESSION, arguments));
+            case default -> callCreateMethodCall(
+                    objectArray((Object[]) Array.newInstance(target, 0)),
+                    (Expression) that.reference(),
+                    of(m.getName()),
+                    of(m.getParameterTypes()),
+                    objectArray(EXPRESSION, arguments));
+        });
     }
 
     private static List<TypeVariable<?>> getTypeVariables(Method m, Class<?> target) {

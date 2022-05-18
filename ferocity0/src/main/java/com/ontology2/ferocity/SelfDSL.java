@@ -6,18 +6,18 @@ import static com.ontology2.ferocity.ExpressionDSL.METHOD_CALL;
 import static com.ontology2.ferocity.ExpressionDSL.quote;
 import static com.ontology2.ferocity.MethodCall.*;
 
+@SuppressWarnings("rawtypes")
 public class SelfDSL {
-    public static <R> Expression<Expression<R>>  callCreateStaticMethodCall(
-            R[] returnType,
-            Expression<Class> thatClass,
+    public static <T,R> Expression<Expression<R>>  callCreateStaticMethodCall(
+            Expression<T[]> thatClass,
             Expression<String> name,
             Expression<Class[]> parameters,
-            Expression... args) {
+            Expression<Expression<?>[]> args) {
         Class[] innerParameters ={
-                String.class, Class[].class, Class.class, Expression[].class
+                Object[].class, String.class, Class[].class, Expression[].class
         };
         Expression[] innerArguments = {
-                name, parameters, thatClass
+                thatClass, name, parameters, args
         };
 
         return createStaticMethodCall(
