@@ -1,6 +1,5 @@
 package com.ontology2.ferocity;
 
-import java.lang.annotation.Inherited;
 import java.lang.reflect.Array;
 
 /***
@@ -11,15 +10,32 @@ import java.lang.reflect.Array;
 
 abstract public class Expression<T> {
 
-    public T evaluate() throws Throwable {
+    public T evaluate() throws Exception {
         return evaluate(new Context());
+    }
+
+    public T evaluateRT() {
+        return evaluateRT(new Context());
+    }
+
+    public T evaluateRT(Context ctx) {
+        try {
+            return evaluate(ctx);
+        } catch(Exception x) {
+            switch(x) {
+                case RuntimeException xx -> throw xx;
+                case InterruptedException xx -> Thread.currentThread().interrupt();
+                default -> throw new RuntimeException(x);
+            }
+        }
+        return null;
     }
 
     public String asSource() {
         return toString();
     }
 
-    abstract public T evaluate(Context ctx) throws Throwable;
+    abstract public T evaluate(Context ctx) throws Exception;
 
     // any Expression implements a toString() method that returns an executable expression
 }
@@ -29,7 +45,7 @@ class LocalName<T> extends Expression<T> {
     private final Class type;
 
     @Override
-    public T evaluate(Context ctx) throws Throwable {
+    public T evaluate(Context ctx) throws Exception {
         if(ctx.has(name,type)) {
             return (T) ctx.get(name);
         } else {
@@ -55,7 +71,7 @@ class Quote<T> extends Expression<Expression<T>> {
     }
 
     @Override
-    public Expression<T> evaluate(Context ctx) throws Throwable {
+    public Expression<T> evaluate(Context ctx) throws Exception {
         return innerExpression;
     }
 
@@ -97,7 +113,7 @@ class ArrayExpression<T> extends Expression<T[]> {
     }
 
     @Override
-    public T[] evaluate(Context ctx) throws Throwable {
+    public T[] evaluate(Context ctx) throws Exception {
         T[] result = (T[]) Array.newInstance(type, parts.length);
         for(int i=0;i<parts.length;i++) {
             Array.set(result, i, parts[i].evaluate());
@@ -109,7 +125,7 @@ class ArrayExpression<T> extends Expression<T[]> {
 class Null<X> extends Expression<X> {
     public Null() {};
     @Override
-    public X evaluate(Context ctx) throws Throwable {
+    public X evaluate(Context ctx) {
         return null;
     }
 

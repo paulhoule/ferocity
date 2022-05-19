@@ -50,7 +50,7 @@ public class MethodCall<R> extends Expression<R> {
     }
 
     @Override
-    public R evaluate(Context ctx) throws Throwable {
+    public R evaluate(Context ctx) throws Exception {
         Object[] argValues = new Object[arguments.length];
         for(int i=0;i<arguments.length;i++) {
             argValues[i] = arguments[i].evaluate(ctx);
@@ -68,7 +68,7 @@ public class MethodCall<R> extends Expression<R> {
      * @return
      * @throws Throwable
      */
-    <V> R evaluateVaradic(Context ctx, V[] varargValues) throws Throwable {
+    <V> R evaluateVaradic(Context ctx, V[] varargValues) throws Exception {
         Object[] argValues = new Object[arguments.length+1];
         for(int i=0;i<arguments.length;i++) {
             argValues[i] = arguments[i].evaluate(ctx);
@@ -86,7 +86,7 @@ public class MethodCall<R> extends Expression<R> {
         return new ClosedVariadic<R, V>(object, this, variableArguments);
     }
 
-    public static <R,T> MethodCall<R>  createMethodCall(T[] thatClass, Expression<T> that, String name, Class[] parameters,  Expression... arguments) {
+    public static <R,T> MethodCall<R>  createMethodCall(T[] thatClass, Expression<? extends T> that, String name, Class[] parameters,  Expression... arguments) {
         return new MethodCall<R>(thatClass.getClass().getComponentType(), that, name, parameters, arguments);
     }
 
@@ -107,11 +107,11 @@ abstract class Variadic<R, V> extends Expression<R> {
     }
 
     @Override
-    public R evaluate(Context ctx) throws Throwable {
+    public R evaluate(Context ctx) throws Exception {
         return fixedPart.evaluateVaradic(ctx, getVariadicValues(ctx));
     }
 
-    abstract V[] getVariadicValues(Context ctx) throws Throwable;
+    abstract V[] getVariadicValues(Context ctx) throws Exception;
 }
 
 class OpenVariadic<R, V> extends Variadic<R,V> {
@@ -122,7 +122,7 @@ class OpenVariadic<R, V> extends Variadic<R,V> {
     }
 
     @Override
-    V[] getVariadicValues(Context ctx) throws Throwable {
+    V[] getVariadicValues(Context ctx) throws Exception {
         V[] values = (V[]) Array.newInstance(varArray.getClass().getComponentType(), variableArguments.size());
         for(int i=0;i<variableArguments.size();i++) {
             values[i] = variableArguments.get(i).evaluate();
@@ -144,7 +144,7 @@ class ClosedVariadic<R,V> extends Variadic<R, V> {
     }
 
     @Override
-    V[] getVariadicValues(Context ctx) throws Throwable {
+    V[] getVariadicValues(Context ctx) throws Exception {
         return this.variableArguments.evaluate(ctx);
     }
 }

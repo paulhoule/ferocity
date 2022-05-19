@@ -3,6 +3,10 @@ package com.ontology2.ferocity;
 import java.lang.reflect.*;
 import java.util.function.Function;
 
+import static com.ontology2.ferocity.ExpressionDSL.reify;
+import static com.ontology2.ferocity.FierceWildcard.anyType;
+import static com.ontology2.ferocity.Types.box;
+
 public class Utility {
     public static <X> void appendItems(StringBuilder a, Iterable<X> s, Function<X,String> fn, CharSequence delimiter) {
         boolean isFirst=true;
@@ -57,4 +61,29 @@ public class Utility {
         return Modifier.isStatic(m.getModifiers());
     };
 
+    static Type getExpandedParameterType(Type t) {
+        if (t instanceof Class c) {
+            if(c.isPrimitive() || isFinal(c)) {
+                return t;
+            }
+        }
+        return anyType().boundedAboveBy(t);
+    }
+
+    static Type parameterExpressionType(Type t) {
+        return expressionOf(getExpandedParameterType(t));
+    }
+
+    static Type parameterExpressionType(Parameter p) {
+        return parameterExpressionType(p.getParameterizedType());
+    }
+
+    static Type expressionOf(Type t) {
+        if(t instanceof Class<?> c) {
+            if (c.isPrimitive()) {
+                return reify(Expression.class,box(c));
+            }
+        }
+        return reify(Expression.class, t);
+    }
 }

@@ -8,11 +8,9 @@ import java.util.function.BiConsumer;
 
 import static com.ontology2.ferocity.DefaultMap.newListMultiMap;
 import static com.ontology2.ferocity.ExpressionDSL.*;
-import static com.ontology2.ferocity.FierceWildcard.anyType;
 import static com.ontology2.ferocity.Literal.of;
 import static com.ontology2.ferocity.ParameterDeclaration.parameter;
 import static com.ontology2.ferocity.SelfDSL.*;
-import static com.ontology2.ferocity.Types.box;
 import static com.ontology2.ferocity.Utility.*;
 import static java.nio.file.Files.*;
 import static java.util.function.Predicate.*;
@@ -207,7 +205,7 @@ public class WrapperGenerator {
 
         ParameterDeclaration<Expression<?>> that=null;
         if(m instanceof Method mm && !isStatic(mm)) {
-            that = parameter(EXPRESSION, reify(Expression.class, target), "that");
+            that = parameter(EXPRESSION, parameterExpressionType(target), "that");
             header = header.receives(that);
         }
 
@@ -263,27 +261,5 @@ public class WrapperGenerator {
 
         typeVariables.removeIf(not(tv::containsValue));
         return typeVariables;
-    }
-
-    private static Type getExpandedParameterType(Type t) {
-        if (t instanceof Class c) {
-            if(c.isPrimitive() || isFinal(c)) {
-                return t;
-            }
-        }
-        return anyType().boundedAboveBy(t);
-    }
-
-    private static Type parameterExpressionType(Parameter p) {
-        return expressionOf(getExpandedParameterType(p.getParameterizedType()));
-    }
-
-    static Type expressionOf(Type t) {
-        if(t instanceof Class<?> c) {
-            if (c.isPrimitive()) {
-                return reify(Expression.class,box(c));
-            }
-        }
-        return reify(Expression.class, t);
     }
 }

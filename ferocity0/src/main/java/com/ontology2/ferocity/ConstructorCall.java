@@ -16,7 +16,7 @@ public class ConstructorCall<R> extends Expression<R> {
     };
 
     @Override
-    public R evaluate(Context ctx) throws Throwable {
+    public R evaluate(Context ctx) throws Exception {
         Object[] argValues=new Object[arguments.length];
         for(int i=0;i<arguments.length;i++) {
             argValues[i]=arguments[i].evaluate(ctx);
