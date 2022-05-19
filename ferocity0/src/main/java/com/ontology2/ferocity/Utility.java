@@ -49,11 +49,7 @@ public class Utility {
         return Modifier.isInterface(c.getModifiers());
     }
 
-    static boolean isPublic(Constructor c) {
-        return Modifier.isPublic(c.getModifiers());
-    }
-
-    static boolean isPublic(Method m) {
+    static boolean isPublic(Executable m) {
         return Modifier.isPublic(m.getModifiers());
     }
 

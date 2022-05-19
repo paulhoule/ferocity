@@ -59,4 +59,10 @@ public class TestWrapperGenerator {
 
     }
 
+    @Test
+    public void tryReflectiveOperationException() {
+        var unique = WrapperGenerator.deconflictConstructors(ReflectiveOperationException.class);
+        assertEquals(4, unique.size());
+    }
+
 }

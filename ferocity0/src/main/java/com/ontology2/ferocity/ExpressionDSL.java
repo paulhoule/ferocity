@@ -18,6 +18,7 @@ public class ExpressionDSL {
     public final static Object[] OBJECT = new Object[0];
     public final static Expression[] EXPRESSION = new Expression[0];
     public final static MethodCall[] METHOD_CALL = new MethodCall[0];
+    public final static ConstructorCall[] CONSTRUCTOR_CALL = new ConstructorCall[0];
     public final static Object[][] ARRAY_OF_OBJECT = new Object[0][];
     public final static byte[][] ARRAY_OF_BYTE = new byte[][] {};
     public final static Void[] VOID = new Void[0];

@@ -2,8 +2,7 @@ package com.ontology2.ferocity;
 
 import java.lang.reflect.Type;
 
-import static com.ontology2.ferocity.ExpressionDSL.METHOD_CALL;
-import static com.ontology2.ferocity.ExpressionDSL.quote;
+import static com.ontology2.ferocity.ExpressionDSL.*;
 import static com.ontology2.ferocity.MethodCall.*;
 
 @SuppressWarnings("rawtypes")
@@ -55,6 +54,23 @@ public class SelfDSL {
                 innerArguments);
     }
 
+    public static <R> Expression<Expression<R>> callCreateConstructorCall(
+            Expression<R[]> thatClass,
+            Expression<Class[]> parameters,
+            Expression<Expression<?>[]> args) {
+        Class[] innerParameters = {
+                Object[].class, Class[].class, Expression[].class
+        };
+        Expression[] innerArguments = {
+                thatClass, parameters, args
+        };
+        return createStaticMethodCall(
+                CONSTRUCTOR_CALL,
+                "createConstructorCall",
+                innerParameters,
+                innerArguments
+        );
+    }
 //    /**
 //     *
 //     * @param name

@@ -11,8 +11,7 @@ import static com.ontology2.ferocity.ExpressionDSL.*;
 import static com.ontology2.ferocity.FierceWildcard.anyType;
 import static com.ontology2.ferocity.Literal.of;
 import static com.ontology2.ferocity.ParameterDeclaration.parameter;
-import static com.ontology2.ferocity.SelfDSL.callCreateMethodCall;
-import static com.ontology2.ferocity.SelfDSL.callCreateStaticMethodCall;
+import static com.ontology2.ferocity.SelfDSL.*;
 import static com.ontology2.ferocity.Types.box;
 import static com.ontology2.ferocity.Utility.*;
 import static java.nio.file.Files.*;
@@ -23,7 +22,8 @@ record NameArity(String name, int arity) {
         return new NameArity(newName, this.arity);
     }
     public static NameArity of(Constructor<?> c) {
-        return new NameArity("", c.getParameterCount());
+        String[] parts=c.getName().split("[.]");
+        return new NameArity(parts[parts.length-1], c.getParameterCount());
     }
 }
 
@@ -42,7 +42,7 @@ record Signature(String name, List<Class<?>> arguments) {
 
 public class WrapperGenerator {
     private static String capitalize(String s) {
-        return Character.toUpperCase(s.charAt(0)) + s.substring(1);
+        return s.isEmpty() ? "" : Character.toUpperCase(s.charAt(0)) + s.substring(1);
     }
 
     @SuppressWarnings("unchecked")
@@ -71,20 +71,18 @@ public class WrapperGenerator {
     }
     private void processClass(Class<?> c, Path target) throws IOException {
         if(!isInterface(c)) {
-            var namedMethods = deconflictMethods(c);
-            var namedConstructors = deconflictConstructors(c);
-            //
-            // add support for fields
-            //
-            //
-
             UrClass uc = new UrClass("\uD835\uDD23."+c.getName());
-            for(var method: namedMethods.entrySet()) {
+            for(var method: deconflictMethods(c).entrySet()) {
                 uc = updateClassForMethod(uc, method.getKey(), method.getValue());
+            }
+            var namedConstructors = deconflictConstructors(c);
+            for(var constructor: deconflictConstructors(c).entrySet()) {
+                uc = updateClassForConstructor(uc, constructor.getKey(), constructor.getValue());
             }
             uc.writeToSourceFile(target);
         }
     }
+
 
     static Map<NameArity,Method> deconflictMethods(Class<?> c) {
         Map<NameArity, List<Method>> methodGroups = newListMultiMap();
@@ -93,7 +91,7 @@ public class WrapperGenerator {
                 continue;
             }
             int arity = m.getParameterCount();
-            if((m.getModifiers() & Modifier.STATIC)==0) {
+            if(!isStatic(m)) {
                 arity += 1;
             }
             var key = new NameArity(m.getName(),arity);
@@ -112,8 +110,8 @@ public class WrapperGenerator {
         return namedMethods;
     }
 
-    Map<NameArity, Executable> deconflictConstructors(Class<?> c) {
-        Map<NameArity, List<Executable>> ctorGroups= newListMultiMap();
+    static Map<NameArity, Constructor> deconflictConstructors(Class<?> c) {
+        Map<NameArity, List<Constructor>> ctorGroups= newListMultiMap();
         for(Constructor<?> ctor: c.getDeclaredConstructors()) {
             if(!isPublic(ctor)) {
                 continue;
@@ -121,10 +119,12 @@ public class WrapperGenerator {
             ctorGroups.get(NameArity.of(ctor)).add(ctor);
         }
 
-        Map<NameArity, Executable> namedCtor = new HashMap<>();
+        Map<NameArity, Constructor> namedCtor = new HashMap<>();
         for(var item: ctorGroups.entrySet()) {
             if(item.getValue().size()>1) {
-                namedCtor.putAll(deconflictConstructorGroup(item));
+                for(var that: deconflictConstructorGroup(item).entrySet()) {
+                    namedCtor.put(that.getKey(), that.getValue());
+                }
             } else {
                 namedCtor.put(item.getKey(), item.getValue().get(0));
             }
@@ -132,7 +132,7 @@ public class WrapperGenerator {
         return namedCtor;
     }
 
-    private Map<NameArity, Executable> deconflictConstructorGroup(Map.Entry<NameArity, List<Executable>> item) {
+    static Map<NameArity, Constructor> deconflictConstructorGroup(Map.Entry<NameArity, List<Constructor>> item) {
         return getNameArityExecutableMap(item.getKey(), item.getValue());
     }
 
@@ -141,8 +141,8 @@ public class WrapperGenerator {
         return getNameArityExecutableMap(g.getKey(), filteredMethods);
     }
 
-    static Map<NameArity, Executable> getNameArityExecutableMap(NameArity a, List<Executable> filteredMethods) {
-        Map<NameArity, Executable> result = new HashMap<>();
+    static <X extends Executable> Map<NameArity, X> getNameArityExecutableMap(NameArity a, List<X> filteredMethods) {
+        Map<NameArity, X> result = new HashMap<>();
         for(var m:filteredMethods) {
             StringBuilder newName = new StringBuilder(a.name());
             for(int i=0;i<m.getParameterCount();i++) {
@@ -192,16 +192,21 @@ public class WrapperGenerator {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    static UrMethod<?> wrapperForMethod(Method m, String name) {
+    static UrMethod<?> wrapperForMethod(Executable m, String name) {
         var target = m.getDeclaringClass();
-        var header = method(name, EXPRESSION, expressionOf(m.getGenericReturnType()));
+        var returns = switch(m) {
+            case Method mm -> mm.getGenericReturnType();
+            default -> m.getDeclaringClass();
+        };
+
+        var header = method(name, EXPRESSION, expressionOf(returns));
 
         for(TypeVariable<?> tVar: getTypeVariables(m, target)) {
                 header = header.typeVariable(tVar);
         }
 
         ParameterDeclaration<Expression<?>> that=null;
-        if(!isStatic(m)) {
+        if(m instanceof Method mm && !isStatic(mm)) {
             that = parameter(EXPRESSION, reify(Expression.class, target), "that");
             header = header.receives(that);
         }
@@ -215,25 +220,37 @@ public class WrapperGenerator {
         }
 
         //noinspection unchecked,RedundantCast,SwitchStatementWithTooFewBranches
-        return header.withBody((Expression) switch(that) {
-            case null -> callCreateStaticMethodCall(
+        return header.withBody((Expression) switch(m) {
+            case Method mm -> switch(that) {
+                case null -> callCreateStaticMethodCall(
+                        objectArray((Object[]) Array.newInstance(target, 0)),
+                        of(mm.getName()),
+                        of(mm.getParameterTypes()),
+                        objectArray(EXPRESSION, arguments));
+                case default -> callCreateMethodCall(
+                        objectArray((Object[]) Array.newInstance(target, 0)),
+                        (Expression) that.reference(),
+                        of(m.getName()),
+                        of(m.getParameterTypes()),
+                        objectArray(EXPRESSION, arguments));
+            };
+            case default -> callCreateConstructorCall(
                     objectArray((Object[]) Array.newInstance(target, 0)),
-                    of(m.getName()),
                     of(m.getParameterTypes()),
-                    objectArray(EXPRESSION, arguments));
-            case default -> callCreateMethodCall(
-                    objectArray((Object[]) Array.newInstance(target, 0)),
-                    (Expression) that.reference(),
-                    of(m.getName()),
-                    of(m.getParameterTypes()),
-                    objectArray(EXPRESSION, arguments));
+                    objectArray(EXPRESSION, arguments)
+            );
         });
     }
 
-    private static List<TypeVariable<?>> getTypeVariables(Method m, Class<?> target) {
+    private UrClass updateClassForConstructor(UrClass uc, NameArity key, Constructor ctor) {
+        String name = "new"+capitalize(key.name());
+        return uc.def(wrapperForMethod(ctor, name));
+    }
+
+    private static List<TypeVariable<?>> getTypeVariables(Executable m, Class<?> target) {
         List<TypeVariable<?>> typeVariables = new ArrayList<>();
         Map<String,TypeVariable<?>> tv = new HashMap<>();
-        if(!isStatic(m)) {
+        if(m instanceof Constructor || m instanceof Method mm && !isStatic(mm)) {
             for(TypeVariable<?> tVar: target.getTypeParameters()) {
                 typeVariables.add(tVar);
                 tv.put(tVar.getName(), tVar);

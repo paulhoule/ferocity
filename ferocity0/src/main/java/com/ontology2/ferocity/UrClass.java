@@ -60,4 +60,12 @@ public class UrClass {
         writer.write(asSource());
         writer.close();
     }
+
+    public String getQualifiedName() {
+        return qualifiedName;
+    }
+    public String getLocalName() {
+        String[] parts = qualifiedName.split("[.]");
+        return parts[parts.length-1];
+    };
 }
