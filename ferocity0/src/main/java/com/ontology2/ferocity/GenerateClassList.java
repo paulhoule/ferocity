@@ -12,21 +12,27 @@ public class GenerateClassList {
      *
      * $HOME/.jdks/openjdk-15.0.1/lib/src.zip
      *
-     * @param argv
-     * @throws ClassNotFoundException
-     * @throws IOException
+     * @param argv first parameter is path to ZIP file for JDK source code
+     * @throws IOException if there is trouble with IO
      */
-    public static void main(String argv[]) throws ClassNotFoundException, IOException {
+    public static void main(String[] argv) throws IOException {
         String srcZip = argv[0];
-        var entries = new ZipFile(srcZip).entries();
-        while(entries.hasMoreElements()) {
-            var e= entries.nextElement();
-            if(e.getName().startsWith("java.base/java/lang/")) {
-                String cn = e.getName().substring(10,e.getName().length()-5).replace("/",".");
-                if(!cn.endsWith(".package-info")) {
-                    Class c = GenerateClassList.class.getClassLoader().loadClass(cn);
-                    if((c.getModifiers() & Modifier.PUBLIC)!=0) {
-                        System.out.println(cn);
+        try(ZipFile zipFile = new ZipFile(srcZip)) {
+            var entries = zipFile.entries();
+            while (entries.hasMoreElements()) {
+                var e = entries.nextElement();
+                if (e.getName().endsWith(".java")) {
+                    String cn = e.getName().replace("/", ".").substring(0, e.getName().length() - 5);
+                    try {
+                        Class<?> c = GenerateClassList.class.getClassLoader().loadClass(cn);
+
+                        if ((c.getModifiers() & Modifier.PUBLIC) != 0) {
+                            if (c.getModule().getName().equals("java.base"))
+                                System.out.println(cn);
+                        }
+                    } catch (ClassNotFoundException x) {
+                        //noinspection ThrowablePrintedToSystemOut
+                        System.out.println(x);
                     }
                 }
             }

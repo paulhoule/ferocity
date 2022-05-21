@@ -40,30 +40,6 @@ abstract public class Expression<T> {
     // any Expression implements a toString() method that returns an executable expression
 }
 
-class LocalName<T> extends Expression<T> {
-    private final String name;
-    private final Class type;
-
-    @Override
-    public T evaluate(Context ctx) throws Exception {
-        if(ctx.has(name,type)) {
-            return (T) ctx.get(name);
-        } else {
-            throw new FierceException("Couldn't find "+name+" with "+type+" in context");
-        }
-    }
-
-    LocalName(String name, T[] type) {
-        this.name = name;
-        this.type = type.getClass().getComponentType();
-    }
-
-    @Override
-    public String toString() {
-        return name;
-    }
-}
-
 class Quote<T> extends Expression<Expression<T>> {
     private final Expression<T> innerExpression;
     Quote(Expression<T> innerExpression) {
@@ -114,6 +90,7 @@ class ArrayExpression<T> extends Expression<T[]> {
 
     @Override
     public T[] evaluate(Context ctx) throws Exception {
+        //noinspection unchecked
         T[] result = (T[]) Array.newInstance(type, parts.length);
         for(int i=0;i<parts.length;i++) {
             Array.set(result, i, parts[i].evaluate());
@@ -123,7 +100,7 @@ class ArrayExpression<T> extends Expression<T[]> {
 }
 
 class Null<X> extends Expression<X> {
-    public Null() {};
+    public Null() {}
     @Override
     public X evaluate(Context ctx) {
         return null;

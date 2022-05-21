@@ -38,7 +38,14 @@ record Signature(String name, List<Class<?>> arguments) {
     }
 }
 
+@SuppressWarnings({"rawtypes", "SwitchStatementWithTooFewBranches"})
 public class WrapperGenerator {
+
+    public static final String TYPE_SEPARATOR = "ʌ";
+    public static final String ARRAY_MARK = "ʘ";
+    public static final String INNER_CLASS_SEPARATOR = "ʃ";
+    public static final String FRAKTUR_F = "\uD835\uDD23.";
+
     private static String capitalize(String s) {
         return s.isEmpty() ? "" : Character.toUpperCase(s.charAt(0)) + s.substring(1);
     }
@@ -49,7 +56,7 @@ public class WrapperGenerator {
     public WrapperGenerator() {
     }
 
-    public void generate(Path dir, String s) throws IOException, ClassNotFoundException {
+    public void generate(Path dir, String s) throws IOException {
         Path p = dir.resolve("classes.txt");
         Path target= dir.resolve(s);
         List<String> classList = readAllLines(p.toAbsolutePath());
@@ -59,7 +66,7 @@ public class WrapperGenerator {
 
             try {
                 Class<?> c = WrapperGenerator.class.getClassLoader().loadClass(qualifiedName);
-                if ((c.getModifiers() & Modifier.PUBLIC) != 0) {
+                if (isPublic(c)) {
                     processClass(c, target);
                 }
             } catch(ClassNotFoundException notFound) {
@@ -68,17 +75,25 @@ public class WrapperGenerator {
         }
     }
     private void processClass(Class<?> c, Path target) throws IOException {
-        if(!isInterface(c)) {
-            UrClass uc = new UrClass("\uD835\uDD23."+c.getName());
-            for(var method: deconflictMethods(c).entrySet()) {
-                uc = updateClassForMethod(uc, method.getKey(), method.getValue());
-            }
-            var namedConstructors = deconflictConstructors(c);
-            for(var constructor: deconflictConstructors(c).entrySet()) {
-                uc = updateClassForConstructor(uc, constructor.getKey(), constructor.getValue());
-            }
+        if (isPublic(c)) {
+            UrClass uc = buildUrClass(c);
             uc.writeToSourceFile(target);
+            for(Class<?> declared: c.getDeclaredClasses()) {
+                processClass(declared,target);
+            }
         }
+    }
+
+    private UrClass buildUrClass(Class<?> c) {
+        UrClass uc = new UrClass(FRAKTUR_F + c.getName().replace("$", INNER_CLASS_SEPARATOR));
+        for(var method: deconflictMethods(c).entrySet()) {
+            uc = updateClassForMethod(uc, method.getKey(), method.getValue());
+        }
+        var namedConstructors = deconflictConstructors(c);
+        for(var constructor: deconflictConstructors(c).entrySet()) {
+            uc = updateClassForConstructor(uc, constructor.getKey(), constructor.getValue());
+        }
+        return uc;
     }
 
 
@@ -120,9 +135,7 @@ public class WrapperGenerator {
         Map<NameArity, Constructor> namedCtor = new HashMap<>();
         for(var item: ctorGroups.entrySet()) {
             if(item.getValue().size()>1) {
-                for(var that: deconflictConstructorGroup(item).entrySet()) {
-                    namedCtor.put(that.getKey(), that.getValue());
-                }
+                namedCtor.putAll(deconflictConstructorGroup(item));
             } else {
                 namedCtor.put(item.getKey(), item.getValue().get(0));
             }
@@ -144,8 +157,8 @@ public class WrapperGenerator {
         for(var m:filteredMethods) {
             StringBuilder newName = new StringBuilder(a.name());
             for(int i=0;i<m.getParameterCount();i++) {
-                newName.append("ʌ");
-                newName.append(m.getParameters()[i].getType().getSimpleName().replace("[]","ʘ"));
+                newName.append(TYPE_SEPARATOR);
+                newName.append(m.getParameters()[i].getType().getSimpleName().replace("[]", ARRAY_MARK));
             }
             result.put(a.with(newName.toString()),m);
         }
@@ -185,7 +198,6 @@ public class WrapperGenerator {
     }
     private UrClass updateClassForMethod(UrClass uc, NameArity key, Method m) {
         String name = "call" + capitalize(key.name());
-        System.out.println(m+" "+m.getModifiers());
         return uc.def(wrapperForMethod(m, name));
     }
 

@@ -11,7 +11,7 @@
     <modules>
         <module>ferocity0</module>
         <module>ferocity-stdlib</module>
-        <module>ferocity0-maven</module>
+        <module>ferocity-stdlib-maven-plugin</module>
     </modules>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

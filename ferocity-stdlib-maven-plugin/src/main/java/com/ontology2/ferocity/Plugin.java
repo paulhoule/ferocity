@@ -28,7 +28,7 @@ public class Plugin extends AbstractMojo {
         var dir = project.getBasedir().toPath();
         try {
             g.generate(dir, "target/generated-sources/ferocity");
-        } catch (IOException |ClassNotFoundException e) {
+        } catch (IOException e) {
             throw new MojoExecutionException(e.getMessage(), e);
         }
     }

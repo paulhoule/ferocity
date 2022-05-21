@@ -7,6 +7,7 @@ import static com.ontology2.ferocity.ExpressionDSL.reify;
 import static com.ontology2.ferocity.FierceWildcard.anyType;
 import static com.ontology2.ferocity.Types.box;
 
+@SuppressWarnings("BooleanMethodIsAlwaysInverted")
 public class Utility {
     public static <X> void appendItems(StringBuilder a, Iterable<X> s, Function<X,String> fn, CharSequence delimiter) {
         boolean isFirst=true;
@@ -46,11 +47,15 @@ public class Utility {
         return b.toString();
     }
 
-    static boolean isFinal(Class c) {
+    static boolean isFinal(Class<?> c) {
         return Modifier.isFinal(c.getModifiers());
     }
-    static boolean isInterface(Class c) {
+    static boolean isInterface(Class<?> c) {
         return Modifier.isInterface(c.getModifiers());
+    }
+
+    static boolean isPublic(Class<?> c) {
+        return Modifier.isPublic(c.getModifiers());
     }
 
     static boolean isPublic(Executable m) {
@@ -59,7 +64,7 @@ public class Utility {
 
     static boolean isStatic(Method m) {
         return Modifier.isStatic(m.getModifiers());
-    };
+    }
 
     static Type getExpandedParameterType(Type t) {
         if (t instanceof Class c) {

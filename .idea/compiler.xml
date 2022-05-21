@@ -7,16 +7,16 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="ferocity-stdlib" />
+        <module name="ferocity-stdlib-maven-plugin" />
         <module name="ferocity0" />
-        <module name="ferocity0-maven" />
       </profile>
     </annotationProcessing>
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
       <module name="ferocity-stdlib" options="--enable-preview" />
+      <module name="ferocity-stdlib-maven-plugin" options="--enable-preview" />
       <module name="ferocity0" options="--enable-preview" />
-      <module name="ferocity0-maven" options="--enable-preview" />
     </option>
   </component>
 </project>

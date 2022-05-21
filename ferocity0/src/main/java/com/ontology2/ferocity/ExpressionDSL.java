@@ -9,15 +9,24 @@ package com.ontology2.ferocity;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
+
+import static com.ontology2.ferocity.MethodCall.createStaticMethodCall;
 
 public class ExpressionDSL {
+    @SuppressWarnings("rawtypes")
     public final static Class[] CLASS = new Class[0];
     public final static String[] STRING = new String[0];
     public final static Long[] LONG = new Long[0];
     public final static Boolean[] BOOLEAN = new Boolean[0];
     public final static Object[] OBJECT = new Object[0];
+    @SuppressWarnings("rawtypes")
     public final static Expression[] EXPRESSION = new Expression[0];
+    @SuppressWarnings("rawtypes")
     public final static MethodCall[] METHOD_CALL = new MethodCall[0];
+    @SuppressWarnings("rawtypes")
     public final static ConstructorCall[] CONSTRUCTOR_CALL = new ConstructorCall[0];
     public final static Object[][] ARRAY_OF_OBJECT = new Object[0][];
     public final static byte[][] ARRAY_OF_BYTE = new byte[][] {};
@@ -27,7 +36,7 @@ public class ExpressionDSL {
         return new AddOperator<>(left,right);
     }
 
-    public static <T> LocalName local(String name, T[] type) {
+    public static <T> LocalName<T> local(String name, T[] type) {
         return new LocalName<>(name, type);
     }
 
@@ -40,10 +49,11 @@ public class ExpressionDSL {
 
     @SafeVarargs
     public static <T,S extends T> Expression<T[]> objectArray(T[] ofType, Expression<S>... parts) {
+        //noinspection unchecked,rawtypes
         return new ArrayExpression(parts, ofType);
     }
 
-    @SuppressWarnings("UnusedReturnValue")
+    @SuppressWarnings({"UnusedReturnValue", "unchecked"})
     public static <T,S extends T> Expression<T[]> objectArrayExact(T[] ofType, Expression<T>[] parts) {
         return new ArrayExpression(parts, ofType);
     }
@@ -62,6 +72,27 @@ public class ExpressionDSL {
 
     public static <X> Expression<X> nil() {
         return new Null<>();
+    }
+
+    public static <In, Out> Expression<Function<In,Out>> lambdaFunction(Type inType, Type outType, Function<ParameterDeclaration<In>, Expression<Out>> fn) {
+      return new LambdaFunction<>(inType, outType, fn);
+    }
+
+    public static <Out> Expression<Supplier<Out>> lambdaSupplier(Type outType, Supplier<Expression<Out>> fn) {
+        return new LambdaSupplier<>(outType, fn);
+    }
+
+    public static <In> Expression<Consumer<In>> lambdaConsumer(Type inType, Function<ParameterDeclaration<In>, Expression<Void>> fn) {
+        return new LambdaConsumer(inType, fn);
+    }
+
+    public static <X> Expression<Void> discard(Expression<X> v) {
+        return createStaticMethodCall(
+                new com.ontology2.ferocity.Exports[]{},
+                "discardIt",
+                new Class[] {Object.class},
+                v
+        );
     }
 
     /**

@@ -2,6 +2,8 @@ package com.ontology2.ferocity;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.stream.Stream;
+
 import static com.ontology2.ferocity.WrapperGenerator.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.platform.commons.util.ReflectionUtils.isStatic;
@@ -64,5 +66,13 @@ public class TestWrapperGenerator {
         var unique = WrapperGenerator.deconflictConstructors(ReflectiveOperationException.class);
         assertEquals(4, unique.size());
     }
+
+    @Test
+    public void tryStream() {
+        var unique = deconflictMethods(Stream.class);
+        assertEquals(48, unique.size());
+    }
+
+
 
 }
