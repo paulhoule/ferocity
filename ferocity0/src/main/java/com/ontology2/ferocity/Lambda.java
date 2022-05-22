@@ -13,7 +13,7 @@ abstract public class Lambda<ReturnsFunction> extends Expression<ReturnsFunction
     public String asSource() {
         StringBuilder sb = new StringBuilder();
         sb.append("(");
-        appendItems(sb, pdecl, ParameterDeclaration::asSource, ", ");
+        appendItems(sb, pdecl, p -> p.reference().asSource(), ", ");
         sb.append(") -> ");
         sb.append(buildFunctionDefinition().asSource());
         return sb.toString();

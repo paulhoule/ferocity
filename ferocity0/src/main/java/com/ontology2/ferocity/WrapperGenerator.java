@@ -206,7 +206,7 @@ public class WrapperGenerator {
         var target = m.getDeclaringClass();
         var returns = switch(m) {
             case Method mm -> mm.getGenericReturnType();
-            default -> m.getDeclaringClass();
+            default -> ctorGenericReturn(m);
         };
 
         var header = method(name, EXPRESSION, expressionOf(returns));
@@ -250,6 +250,11 @@ public class WrapperGenerator {
                     objectArray(EXPRESSION, arguments)
             );
         });
+    }
+
+    private static Type ctorGenericReturn(Executable m) {
+        Class c = m.getDeclaringClass();
+        return new FierceParameterizedType(c, c.getTypeParameters());
     }
 
     private UrClass updateClassForConstructor(UrClass uc, NameArity key, Constructor ctor) {

@@ -9,9 +9,7 @@ package com.ontology2.ferocity;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Supplier;
+import java.util.function.*;
 
 import static com.ontology2.ferocity.MethodCall.createStaticMethodCall;
 
@@ -53,7 +51,7 @@ public class ExpressionDSL {
         return new ArrayExpression(parts, ofType);
     }
 
-    @SuppressWarnings({"UnusedReturnValue", "unchecked"})
+    @SuppressWarnings({"UnusedReturnValue", "unchecked", "rawtypes"})
     public static <T,S extends T> Expression<T[]> objectArrayExact(T[] ofType, Expression<T>[] parts) {
         return new ArrayExpression(parts, ofType);
     }
@@ -78,12 +76,24 @@ public class ExpressionDSL {
       return new LambdaFunction<>(inType, outType, fn);
     }
 
-    public static <Out> Expression<Supplier<Out>> lambdaSupplier(Type outType, Supplier<Expression<Out>> fn) {
+    public static <Out> Expression<Supplier<Out>> lambdaSupplier(Type outType, Supplier<Expression<? extends Out>> fn) {
         return new LambdaSupplier<>(outType, fn);
     }
 
-    public static <In> Expression<Consumer<In>> lambdaConsumer(Type inType, Function<ParameterDeclaration<In>, Expression<Void>> fn) {
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public static <In> Expression<Consumer<In>> lambdaConsumer(
+            Type inType,
+            Function<ParameterDeclaration<In>,
+            Expression<Void>> fn) {
         return new LambdaConsumer(inType, fn);
+    }
+
+    public static <In0, In1> Expression<BiConsumer<In0, In1>> lambdaBiConsumer(
+            Type in0Type,
+            Type in1Type,
+            BiFunction<ParameterDeclaration<In0>, ParameterDeclaration<In1>, Expression<Void>> fn) {
+        //noinspection unchecked,rawtypes
+        return new LambdaBiConsumer(in0Type, in1Type, fn);
     }
 
     public static <X> Expression<Void> discard(Expression<X> v) {

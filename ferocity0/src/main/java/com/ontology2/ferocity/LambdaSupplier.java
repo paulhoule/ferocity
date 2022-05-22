@@ -5,9 +5,9 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class LambdaSupplier<Out> extends Lambda<Supplier<Out>> {
-    private final Supplier<Expression<Out>> fn;
+    private final Supplier<Expression<? extends Out>> fn;
 
-    public LambdaSupplier(Type outType, Supplier<Expression<Out>> fn) {
+    public LambdaSupplier(Type outType, Supplier<Expression<? extends Out>> fn) {
         super(new ParameterDeclaration[] {});
         this.fn = fn;
     }
@@ -17,7 +17,7 @@ public class LambdaSupplier<Out> extends Lambda<Supplier<Out>> {
     }
 
     @Override
-    protected Expression<Out> buildFunctionDefinition() {
+    protected Expression<? extends Out> buildFunctionDefinition() {
         return fn.get();
     }
 }
