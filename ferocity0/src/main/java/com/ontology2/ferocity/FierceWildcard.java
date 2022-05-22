@@ -30,7 +30,7 @@ public record FierceWildcard(PStack<Type> upperBounds, PStack<Type> lowerBounds)
             appendItems(sb, upperBounds, Utility::sourceName, " & ");
         }
         if(!lowerBounds.isEmpty()) {
-            sb.append(" extends ");
+            sb.append(" super ");
             appendItems(sb, lowerBounds, Utility::sourceName, " & ");
         }
         return sb.toString();
