@@ -2,18 +2,22 @@ package com.ontology2.ferocity.stdlib;
 
 import com.ontology2.ferocity.Expression;
 import com.ontology2.ferocity.Literal;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import 𝔣.java.util.HashSet;
 import 𝔣.java.util.Collection;
 
+import java.math.BigInteger;
 import java.util.Set;
 import java.util.function.BiConsumer;
+import java.util.function.BinaryOperator;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import static com.ontology2.ferocity.ExpressionDSL.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import static 𝔣.java.math.BigInteger.callValueOf;
 import static 𝔣.java.util.stream.Stream.*;
 import static 𝔣.java.util.stream.StreamʃBuilder.*;
 
@@ -86,6 +90,46 @@ public class TestStreams {
                 -> com.ontology2.ferocity.Exports.discardIt(arg0.add(arg1)),(arg0, arg1)
                 -> com.ontology2.ferocity.Exports.discardIt(arg0.addAll(arg1)));
         assertEquals(r2,l);
+    }
+
+    @Test
+    public void countWithReducer() {
+        var builder = callBuilder();
+        for(long i=0;i<4;i++) {
+            builder=callAdd(builder,callValueOf(Literal.of(i)));
+        }
+        Expression<Stream<BigInteger>> stream = callBuild(builder);
+        Expression<BinaryOperator<BigInteger>> increment = lambdaBinaryOperator(BigInteger.class, (a,b) ->
+                𝔣.java.math.BigInteger.callAdd(a.reference(), callValueOf(Literal.of(1L))));
+        Expression<BigInteger> pipeline = callReduce(stream, callValueOf(Literal.of(0L)), increment);
+        assertEquals(4, pipeline.evaluateRT().intValue());
+    }
+
+    //
+    // Boy we are getting awkward here.  We've only got a limited set of operators for expressions and
+    // some limitations in the code generator.
+    //
+    // An immediate hangup to make this work is that we need to put the <BigInteger> type parameter
+    // onto callBuilder() at the very beginning of this process.  Can we make the expression take some
+    // parameter like
+    //
+    // callBuilder.withTypes(BigInteger)
+    //
+    @Test @Disabled
+    public void sumWithReducer() {
+        Expression<Stream.Builder<BigInteger>> builder = callBuilder();
+        for(long i=0;i<4;i++) {
+            builder=callAdd(builder,callValueOf(Literal.of(i)));
+        }
+        Expression<Stream<BigInteger>> stream = callBuild(builder);
+        Expression<BinaryOperator<BigInteger>> addEm = lambdaBinaryOperator(BigInteger.class, (a,b) ->
+                𝔣.java.math.BigInteger.callAdd(a.reference(), b.reference()));
+        Expression<BigInteger> pipeline = callReduce(stream, callValueOf(Literal.of(0L)), addEm);
+        assertEquals(6, pipeline.evaluateRT().intValue());
+        assertEquals("java.util.stream.Stream.<BigInteger>builder().add(java.math.BigInteger.valueOf(0L)).add(java.math.BigInteger.valueOf(1L)).add(java.math.BigInteger.valueOf(2L)).add(java.math.BigInteger.valueOf(3L)).build().reduce(java.math.BigInteger.valueOf(0L),(arg0, arg1) -> arg0.add(arg1))", pipeline.asSource());
+        BigInteger codePipeline = java.util.stream.Stream.<BigInteger>builder().add(java.math.BigInteger.valueOf(0L)).
+                add(java.math.BigInteger.valueOf(1L)).add(java.math.BigInteger.valueOf(2L)).
+                add(java.math.BigInteger.valueOf(3L)).build().reduce(java.math.BigInteger.valueOf(0L),(arg0, arg1) -> arg0.add(arg1));
     }
 }
 

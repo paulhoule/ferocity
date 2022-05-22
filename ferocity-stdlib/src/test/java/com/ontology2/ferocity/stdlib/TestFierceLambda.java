@@ -4,13 +4,11 @@ import com.ontology2.ferocity.Context;
 import com.ontology2.ferocity.Expression;
 import org.junit.jupiter.api.Test;
 
+import java.math.BigInteger;
 import java.time.Month;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Supplier;
+import java.util.function.*;
 import java.util.stream.Collectors;
 
 import com.ontology2.ferocity.ParameterDeclaration;
@@ -82,6 +80,15 @@ public class TestFierceLambda {
         c2.accept(accumulator,"yet.");
         String result = String.join(" ", accumulator);
         assertEquals("We're not out yet.", result);
+    }
+
+    @Test
+    public void canDoMathWithBigIntegers() {
+        Expression<BinaryOperator<BigInteger>> expr = lambdaBinaryOperator(BigInteger.class,
+                (a, b) -> 𝔣.java.math.BigInteger.callAdd(a.reference(), b.reference()));
+        var left = BigInteger.valueOf(105L);
+        var right = BigInteger.valueOf(95L);
+        assertEquals(left.add(right), expr.evaluateRT().apply(left,right));
     }
 
 }

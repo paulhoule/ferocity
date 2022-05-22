@@ -72,6 +72,20 @@ public class ExpressionDSL {
         return new Null<>();
     }
 
+    /**
+     * Lambdas work remarkably well but they are still a bit of a sham.  In particular,  the types given
+     * in arguments aren't really used now and they aren't checked at the first compile.  We might be able
+     * to get away with not specifying the type at all,  but the ParameterDeclaration expects it.  We probably
+     * should introduce a single object that holds a generic type as a generic type parameter and holds an
+     * empty array to fix the raw type and the parameterized type.
+     *
+     * @param inType input type of the function we're creating
+     * @param outType output type of function we're creating
+     * @param fn a function that returns an expression of outType
+     * @return an expression that creates a Function&lt;In,Out&gt;
+     * @param <In> the input type (same as inType)
+     * @param <Out> the output type (same as outType)
+     */
     public static <In, Out> Expression<Function<In,Out>> lambdaFunction(Type inType, Type outType, Function<ParameterDeclaration<In>, Expression<Out>> fn) {
       return new LambdaFunction<>(inType, outType, fn);
     }
@@ -95,6 +109,13 @@ public class ExpressionDSL {
         //noinspection unchecked,rawtypes
         return new LambdaBiConsumer(in0Type, in1Type, fn);
     }
+
+    public static <T> Expression<java.util.function.BinaryOperator<T>> lambdaBinaryOperator(
+            Type type,
+            BiFunction<ParameterDeclaration<T>, ParameterDeclaration<T>, Expression<T>> fn
+    ) {
+        return new LambdaBinaryOperator(type, fn);
+    };
 
     public static <X> Expression<Void> discard(Expression<X> v) {
         return createStaticMethodCall(
