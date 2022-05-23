@@ -6,14 +6,14 @@ import com.ontology2.ferocity.Literal;
 import org.junit.jupiter.api.Test;
 
 //import java.util.ArrayList;
-import 𝔣.java.util.ArrayList;
 import java.util.List;
 
 import static com.ontology2.ferocity.ExpressionDSL.local;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import static 𝔣.java.util.List.*;
+import fierce.java.util.ArrayList𝔣;
+import static fierce.java.util.List𝔣.*;
 
 public class TestCollections {
     //
@@ -22,7 +22,7 @@ public class TestCollections {
     //
     @Test
     public void createAList() {
-        var lx = ArrayList.<String>newArrayList();
+        var lx = ArrayList𝔣.<String>newArrayList();
         var l = lx.evaluateRT();
         l.add("XXX");
         l.add("YYY");
@@ -33,7 +33,7 @@ public class TestCollections {
 
     @Test
     public void createAList2() {
-        var lx = ArrayList.<String>newArrayList();
+        var lx = ArrayList𝔣.<String>newArrayList();
         var l = lx.evaluateRT();
         l.add("XXX");
         l.add("YYY");

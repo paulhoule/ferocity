@@ -3,9 +3,9 @@ package com.ontology2.ferocity.stdlib;
 import com.ontology2.ferocity.Literal;
 import org.junit.jupiter.api.Test;
 
+import static fierce.java.lang.IllegalStateException𝔣.newIllegalStateExceptionʌString;
+import static fierce.java.lang.Throwable𝔣.callGetMessage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static 𝔣.java.lang.IllegalStateException.newIllegalStateExceptionʌString;
-import static 𝔣.java.lang.Throwable.callGetMessage;
 
 public class TestIllegalStateException {
     @Test

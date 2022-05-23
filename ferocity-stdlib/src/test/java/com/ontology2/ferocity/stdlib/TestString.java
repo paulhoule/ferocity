@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 import static com.ontology2.ferocity.ExpressionDSL.*;
 import static com.ontology2.ferocity.Literal.of;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static 𝔣.java.lang.String.*;
+import static fierce.java.lang.String𝔣.*;
 
 public class TestString {
     @Test

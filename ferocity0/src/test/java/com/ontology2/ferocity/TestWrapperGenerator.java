@@ -43,7 +43,7 @@ public class TestWrapperGenerator {
         var returns = Utility.expressionOf(info.getReturnType());
 
         assertEquals("com.ontology2.ferocity.Expression<java.lang.ProcessHandle$Info>", returns.getTypeName());
-        assertEquals("public static com.ontology2.ferocity.Expression<java.lang.ProcessHandle.Info> " +
+        assertEquals("public static com.ontology2.ferocity.MethodCall<java.lang.ProcessHandle.Info> " +
                 "info(com.ontology2.ferocity.Expression<? extends java.lang.Process> that)",u.header.asSource());
 
     }
@@ -56,7 +56,7 @@ public class TestWrapperGenerator {
         assertEquals(Class.class, getDeclaringClass.getReturnType());
         var u = wrapperForMethod(getDeclaringClass, "xxx");
 
-        assertEquals("public static <E extends java.lang.Enum<E>> com.ontology2.ferocity.Expression<java.lang.Class<E>> " +
+        assertEquals("public static <E extends java.lang.Enum<E>> com.ontology2.ferocity.MethodCall<java.lang.Class<E>> " +
                 "xxx(com.ontology2.ferocity.Expression<? extends java.lang.Enum> that)",u.header.asSource());
 
     }

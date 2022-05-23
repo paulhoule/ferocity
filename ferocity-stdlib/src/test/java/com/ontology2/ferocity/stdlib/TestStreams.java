@@ -4,8 +4,9 @@ import com.ontology2.ferocity.Expression;
 import com.ontology2.ferocity.Literal;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import 𝔣.java.util.HashSet;
-import 𝔣.java.util.Collection;
+import fierce.java.util.HashSet𝔣;
+import fierce.java.util.Collection𝔣;
+
 
 import java.math.BigInteger;
 import java.util.Set;
@@ -14,18 +15,20 @@ import java.util.function.BinaryOperator;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
+import fierce.java.math.BigInteger𝔣;
+import fierce.java.util.stream.Stream𝔣;
 import static com.ontology2.ferocity.ExpressionDSL.*;
+import static fierce.java.math.BigInteger𝔣.callValueOf;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import static 𝔣.java.math.BigInteger.callValueOf;
-import static 𝔣.java.util.stream.Stream.*;
-import static 𝔣.java.util.stream.StreamʃBuilder.*;
+import static fierce.java.util.stream.Stream𝔣.*;
+import static fierce.java.util.stream.StreamʃBuilder𝔣.*;
 
 public class TestStreams {
 
 //
 // The following test doesn't build,  it can be made to build by manually hacking the signature of callCollect
-// such that the collector argumenmt takes Expression<? extends java.util.stream.Collector<? super T, ?, R>>
+// such that the collector argument takes Expression<? extends java.util.stream.Collector<? super T, ?, R>>
 // as opposed to A in that slot.  I can see a rule that might work on that one (since that A is used in one
 // just one place it can be dropped out.
 //
@@ -70,12 +73,12 @@ public class TestStreams {
             builder=callAdd(builder,Literal.of(i));
         }
         Expression<Stream<Integer>> stream = callBuild(builder);
-        Expression<Supplier<Set<Integer>>> supplier = lambdaSupplier(Set.class, HashSet::newHashSet);
+        Expression<Supplier<Set<Integer>>> supplier = lambdaSupplier(Set.class, HashSet𝔣::newHashSet);
         Expression<BiConsumer<Set<Integer>, Integer>> accumulator = lambdaBiConsumer(Set.class, Integer.class,
-                (a,b)-> discard(Collection.callAdd(a.reference(),b.reference())));
+                (a,b)-> discard(Collection𝔣.callAdd(a.reference(),b.reference())));
 
         Expression<BiConsumer<Set<Integer>, Set<Integer>>> combiner = lambdaBiConsumer(Set.class, Set.class,
-                (a,b) -> discard(Collection.callAddAll(a.reference(), b.reference()))
+                (a,b) -> discard(Collection𝔣.callAddAll(a.reference(), b.reference()))
         );
         var expr = callCollect(stream,supplier,accumulator,combiner);
         var l = expr.evaluateRT();
@@ -100,7 +103,7 @@ public class TestStreams {
         }
         Expression<Stream<BigInteger>> stream = callBuild(builder);
         Expression<BinaryOperator<BigInteger>> increment = lambdaBinaryOperator(BigInteger.class, (a,b) ->
-                𝔣.java.math.BigInteger.callAdd(a.reference(), callValueOf(Literal.of(1L))));
+                BigInteger𝔣.callAdd(a.reference(), callValueOf(Literal.of(1L))));
         Expression<BigInteger> pipeline = callReduce(stream, callValueOf(Literal.of(0L)), increment);
         assertEquals(4, pipeline.evaluateRT().intValue());
     }
@@ -115,19 +118,23 @@ public class TestStreams {
     //
     // callBuilder.withTypes(BigInteger)
     //
-    @Test @Disabled
+    @Test
     public void sumWithReducer() {
-        Expression<Stream.Builder<BigInteger>> builder = callBuilder();
+        Expression<Stream.Builder<BigInteger>> builder = Stream𝔣.<BigInteger>callBuilder().withTypeParameters(BigInteger.class);
         for(long i=0;i<4;i++) {
             builder=callAdd(builder,callValueOf(Literal.of(i)));
         }
         Expression<Stream<BigInteger>> stream = callBuild(builder);
-        Expression<BinaryOperator<BigInteger>> addEm = lambdaBinaryOperator(BigInteger.class, (a,b) ->
-                𝔣.java.math.BigInteger.callAdd(a.reference(), b.reference()));
+        Expression<BinaryOperator<BigInteger>> addEm = lambdaBinaryOperator(BigInteger.class, (a,b) -> BigInteger𝔣.callAdd(a.reference(), b.reference()));
         Expression<BigInteger> pipeline = callReduce(stream, callValueOf(Literal.of(0L)), addEm);
         assertEquals(6, pipeline.evaluateRT().intValue());
-        assertEquals("java.util.stream.Stream.<BigInteger>builder().add(java.math.BigInteger.valueOf(0L)).add(java.math.BigInteger.valueOf(1L)).add(java.math.BigInteger.valueOf(2L)).add(java.math.BigInteger.valueOf(3L)).build().reduce(java.math.BigInteger.valueOf(0L),(arg0, arg1) -> arg0.add(arg1))", pipeline.asSource());
-        BigInteger codePipeline = java.util.stream.Stream.<BigInteger>builder().add(java.math.BigInteger.valueOf(0L)).
+        assertEquals("java.util.stream.Stream.<java.math.BigInteger>builder()" +
+                ".add(java.math.BigInteger.valueOf(0L)).add(java.math.BigInteger.valueOf(1L))" +
+                ".add(java.math.BigInteger.valueOf(2L)).add(java.math.BigInteger.valueOf(3L))" +
+                ".build().reduce(java.math.BigInteger.valueOf(0L),(arg0, arg1) -> arg0.add(arg1))",
+                pipeline.asSource());
+        //noinspection Convert2MethodRef
+        BigInteger codePipeline = java.util.stream.Stream.<java.math.BigInteger>builder().add(java.math.BigInteger.valueOf(0L)).
                 add(java.math.BigInteger.valueOf(1L)).add(java.math.BigInteger.valueOf(2L)).
                 add(java.math.BigInteger.valueOf(3L)).build().reduce(java.math.BigInteger.valueOf(0L),(arg0, arg1) -> arg0.add(arg1));
     }

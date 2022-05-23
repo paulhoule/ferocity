@@ -8,9 +8,11 @@ import java.util.function.BiConsumer;
 
 import static com.ontology2.ferocity.DefaultMap.newListMultiMap;
 import static com.ontology2.ferocity.ExpressionDSL.*;
+import static com.ontology2.ferocity.ExpressionDSL.reify;
 import static com.ontology2.ferocity.Literal.of;
 import static com.ontology2.ferocity.ParameterDeclaration.parameter;
 import static com.ontology2.ferocity.SelfDSL.*;
+import static com.ontology2.ferocity.Types.box;
 import static com.ontology2.ferocity.Utility.*;
 import static java.nio.file.Files.*;
 import static java.util.function.Predicate.*;
@@ -44,7 +46,7 @@ public class WrapperGenerator {
     public static final String TYPE_SEPARATOR = "ʌ";
     public static final String ARRAY_MARK = "ʘ";
     public static final String INNER_CLASS_SEPARATOR = "ʃ";
-    public static final String FRAKTUR_F = "\uD835\uDD23.";
+    public static final String FRAKTUR_F = "\uD835\uDD23";
 
     private static String capitalize(String s) {
         return s.isEmpty() ? "" : Character.toUpperCase(s.charAt(0)) + s.substring(1);
@@ -54,6 +56,19 @@ public class WrapperGenerator {
     private static final Expression<byte[]>[] EXPRESSION_OF_ARRAY_OF_BYTE = new Expression[]{};
 
     public WrapperGenerator() {
+    }
+
+    private static Type methodCallOf(Type t) {
+        if(t instanceof Class<?> c) {
+            if (c.isPrimitive()) {
+                return reify(MethodCall.class,box(c));
+            }
+        }
+        return reify(MethodCall.class, t);
+    }
+
+    private static Type constructorCallOf(Type t) {
+        return reify(ConstructorCall.class, t);
     }
 
     public void generate(Path dir, String s) throws IOException {
@@ -85,7 +100,7 @@ public class WrapperGenerator {
     }
 
     private UrClass buildUrClass(Class<?> c) {
-        UrClass uc = new UrClass(FRAKTUR_F + c.getName().replace("$", INNER_CLASS_SEPARATOR));
+        UrClass uc = new UrClass("fierce." + c.getName().replace("$", INNER_CLASS_SEPARATOR) + FRAKTUR_F);
         for(var method: deconflictMethods(c).entrySet()) {
             uc = updateClassForMethod(uc, method.getKey(), method.getValue());
         }
@@ -209,7 +224,12 @@ public class WrapperGenerator {
             default -> ctorGenericReturn(m);
         };
 
-        var header = method(name, EXPRESSION, expressionOf(returns));
+        var header = method(name, EXPRESSION,
+                switch(m) {
+                    case Method mm -> methodCallOf(returns);
+                    default -> constructorCallOf(returns);
+                }
+        );
 
         for(TypeVariable<?> tVar: getTypeVariables(m, target)) {
                 header = header.typeVariable(tVar);

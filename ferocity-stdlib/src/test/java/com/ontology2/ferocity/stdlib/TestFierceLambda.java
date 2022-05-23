@@ -9,18 +9,17 @@ import java.time.Month;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.*;
-import java.util.stream.Collectors;
 
 import com.ontology2.ferocity.ParameterDeclaration;
+import fierce.java.math.BigInteger𝔣;
 
 import static com.ontology2.ferocity.ExpressionDSL.*;
-import static java.util.stream.Collectors.joining;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static 𝔣.java.lang.Math.callSqrt;
-import static 𝔣.java.time.Month.callFrom;
-import static 𝔣.java.time.LocalDate.callNow;
-import static 𝔣.java.util.List.callAdd;
+import static fierce.java.lang.Math𝔣.callSqrt;
+import static fierce.java.time.Month𝔣.callFrom;
+import static fierce.java.time.LocalDate𝔣.callNow;
+import static fierce.java.util.List𝔣.callAdd;
 
 @SuppressWarnings({"Convert2MethodRef", "ConstantConditions"})
 public class TestFierceLambda {
@@ -85,7 +84,7 @@ public class TestFierceLambda {
     @Test
     public void canDoMathWithBigIntegers() {
         Expression<BinaryOperator<BigInteger>> expr = lambdaBinaryOperator(BigInteger.class,
-                (a, b) -> 𝔣.java.math.BigInteger.callAdd(a.reference(), b.reference()));
+                (a, b) -> BigInteger𝔣.callAdd(a.reference(), b.reference()));
         var left = BigInteger.valueOf(105L);
         var right = BigInteger.valueOf(95L);
         assertEquals(left.add(right), expr.evaluateRT().apply(left,right));
